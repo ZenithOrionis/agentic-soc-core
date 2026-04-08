@@ -225,6 +225,22 @@ chmod +x tools/kali-audit-bridge/install-kali-audit-bridge.sh
 
 This enables `auditd`, tails Kali exec events, classifies suspicious commands, and posts Wazuh-like events to the normalizer. Details: [tools/kali-audit-bridge/README.md](tools/kali-audit-bridge/README.md).
 
+## Kali Startup Automation
+
+To bring up the full Kali lab automatically at boot, including Docker, the SOC stack, Ollama model readiness, and the audit bridge:
+
+```bash
+chmod +x tools/kali-startup/install-kali-startup-service.sh
+./tools/kali-startup/install-kali-startup-service.sh
+```
+
+Manual startup script:
+
+```bash
+chmod +x tools/kali-startup/start-agentic-soc-lab.sh
+./tools/kali-startup/start-agentic-soc-lab.sh
+```
+
 ## Demo Scenarios
 
 - Scenario 1: Suspicious outbound beacon / C2-like traffic. Repeated callbacks are normalized, correlated, blocked in the demo firewall state, quarantined in demo state, cased, and reported.

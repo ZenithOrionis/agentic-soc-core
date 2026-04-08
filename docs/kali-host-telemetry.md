@@ -17,6 +17,22 @@ chmod +x tools/kali-audit-bridge/install-kali-audit-bridge.sh
 ./tools/kali-audit-bridge/install-kali-audit-bridge.sh
 ```
 
+## Full Kali Lab Startup
+
+To automate the entire lab stack at VM startup:
+
+```bash
+chmod +x tools/kali-startup/install-kali-startup-service.sh
+./tools/kali-startup/install-kali-startup-service.sh
+```
+
+Manual one-shot startup:
+
+```bash
+chmod +x tools/kali-startup/start-agentic-soc-lab.sh
+./tools/kali-startup/start-agentic-soc-lab.sh
+```
+
 ## Verify
 
 ```bash

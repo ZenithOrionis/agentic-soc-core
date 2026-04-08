@@ -2,6 +2,21 @@
 
 This is a separate benign demo attack tool for AegisCore. It does not run malware, exploit code, or destructive commands. It only sends safe adversary-emulation events to the SOC demo.
 
+For polished demonstrations where you want both the real Atomic execution and a guaranteed visible alert path, use the live-demo wrappers. They execute the real Atomic test first, then inject the matching SOC telemetry so the dashboard, case flow, and report update reliably.
+
+Windows PowerShell:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\demo-attack-runner\ps1\Run-LiveDemo-SuspiciousScript.ps1
+```
+
+Kali / Linux:
+
+```bash
+chmod +x ./tools/demo-attack-runner/sh/*.sh
+./tools/demo-attack-runner/sh/run-live-demo-suspicious-script.sh
+```
+
 ## PowerShell Usage
 
 List scenarios:

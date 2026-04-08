@@ -1,0 +1,1 @@
+& "$PSScriptRoot\Invoke-AegisCoreLiveDemo.ps1" -Scenario "persistence-like"

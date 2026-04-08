@@ -55,12 +55,32 @@
       <tr><th>Enabled</th><td>{{ analyst.get("enabled") }}</td></tr>
       <tr><th>Used</th><td>{{ analyst.get("used") }}</td></tr>
       <tr><th>Model</th><td>{{ analyst.get("model", "n/a") }}</td></tr>
+      <tr><th>Framework</th><td>{{ analyst.get("framework", "n/a") }}</td></tr>
       <tr><th>Authority Mode</th><td>{{ analyst.get("authority_mode", "n/a") }}</td></tr>
       <tr><th>Authority Used</th><td>{{ analyst.get("authority_used", "n/a") }}</td></tr>
       <tr><th>Disposition</th><td>{{ analyst.get("disposition", "n/a") }}</td></tr>
       <tr><th>Confidence Adjustment</th><td>{{ analyst.get("confidence_adjustment", "n/a") }}</td></tr>
       <tr><th>Approved AI Actions</th><td>{{ analyst.get("approved_ai_actions", [])|join(", ") }}</td></tr>
     </table>
+    {% if analyst.get("selected_tools") %}
+    <h3>Selected LangChain Tools</h3>
+    {% for tool in analyst.get("selected_tools", []) %}
+    <article class="card">
+      <h3>{{ tool.get("title", tool.get("tool_name")) }}</h3>
+      <p><strong>Tool Name:</strong> {{ tool.get("tool_name") }}</p>
+      <p><strong>Action Mapping:</strong> {{ tool.get("action_name") }}</p>
+      <p><strong>Provider:</strong> {{ tool.get("provider") }} | <strong>Category:</strong> {{ tool.get("category") }}</p>
+      <p><strong>Description:</strong> {{ tool.get("description") }}</p>
+      {% if tool.get("justifications") %}
+      <p><strong>Why the agent chose it:</strong></p>
+      <ul>{% for item in tool.get("justifications", []) %}<li>{{ item }}</li>{% endfor %}</ul>
+      {% endif %}
+    </article>
+    {% endfor %}
+    {% elif analyst.get("tool_calls") %}
+    <h3>Selected LangChain Tools</h3>
+    <ul>{% for item in analyst.get("tool_calls", []) %}<li>{{ item }}</li>{% endfor %}</ul>
+    {% endif %}
     {% if analyst.get("error") %}
     <h3>Why Ollama Was Not Used</h3>
     <p>{{ analyst.get("error") }}</p>

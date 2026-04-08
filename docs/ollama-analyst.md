@@ -4,7 +4,7 @@ AegisCore now includes an optional local Ollama analyst. This is the first true 
 
 ## What It Does
 
-When `OLLAMA_ENABLED=true`, the SOC orchestrator sends the current incident, latest normalized event, and deterministic policy plan to Ollama. Ollama returns a strict JSON analyst decision:
+When `OLLAMA_ENABLED=true`, the SOC orchestrator now runs the analyst through a LangChain tool-calling agent backed by Ollama. The model receives the current incident, latest normalized event, and deterministic policy plan, then decides whether to call bounded SOC action tools before returning the analyst decision payload:
 
 ```json
 {
@@ -18,7 +18,7 @@ When `OLLAMA_ENABLED=true`, the SOC orchestrator sends the current incident, lat
 }
 ```
 
-The orchestrator records the Ollama decision in incident metadata and the incident timeline.
+The orchestrator records the Ollama decision, any LangChain tool calls, and the final approved actions in incident metadata and the incident timeline.
 
 ## What It Is Allowed To Influence
 
@@ -36,7 +36,7 @@ Ollama can influence:
 
 By default, Ollama does not bypass policy.
 
-The orchestrator runs Ollama-recommended actions through guardrails before execution:
+The orchestrator runs Ollama or LangChain tool selected actions through guardrails before execution:
 
 - unsupported actions are dropped
 - irreversible actions are dropped
@@ -54,11 +54,33 @@ If you explicitly enable it, Ollama can become the primary action selector.
 Environment variables:
 
 ```env
+OLLAMA_AGENT_MODE=langchain|json-direct
 OLLAMA_AUTHORITY_MODE=advisory|bounded|direct-lab
 OLLAMA_AUTHORITY_MIN_CONFIDENCE=0.85
 OLLAMA_AUTHORITY_MAX_RISK=medium
 OLLAMA_EXECUTION_USE_APPROVAL_TOKEN=true
 ```
+
+Mode details:
+
+- `langchain`: default; the analyst uses LangChain tools and can explicitly choose which bounded SOC actions it wants to request
+- `json-direct`: fallback compatibility mode; sends the legacy JSON-only prompt directly to Ollama without tool calling
+
+Adapter-backed LangChain tools now exposed to the analyst include:
+
+- `thehive_create_case`
+- `thehive_attach_observables`
+- `cortex_run_observable_analysis`
+- `shuffle_execute_response_workflow`
+- `explainability_generate_incident_report`
+
+Response-layer tools remain bounded and explicit as well:
+
+- `response_collect_artifacts`
+- `response_block_ip`
+- `response_isolate_container`
+- `response_stop_container`
+- `response_kill_process`
 
 Mode behavior:
 
@@ -94,4 +116,5 @@ Change it in `.env.production` if your workstation has a different model already
 
 - Ollama client: `shared/clients/ollama.py`
 - Orchestrator integration: `apps/soc-orchestrator/app/main.py`
+- LangChain runtime dependencies: `apps/soc-orchestrator/requirements.txt`
 - Report rendering: `apps/explainability-service/app/templates/report.html`

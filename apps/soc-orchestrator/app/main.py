@@ -149,6 +149,7 @@ def merge_ai_decision(
             "enabled": ollama_analyst.enabled,
             "used": False,
             "model": ollama_analyst.model,
+            "framework": ollama_analyst.framework,
             "authority_mode": OLLAMA_AUTHORITY_MODE,
         }
         return actions, False
@@ -197,12 +198,16 @@ def merge_ai_decision(
         "enabled": True,
         "used": True,
         "model": ollama_analyst.model,
+        "framework": ollama_analyst.framework,
         "authority_mode": OLLAMA_AUTHORITY_MODE,
         "authority_used": authoritative,
         "disposition": analyst.disposition,
         "confidence_adjustment": analyst.confidence_adjustment,
         "recommended_actions": analyst.recommended_actions,
         "approved_ai_actions": ai_actions,
+        "tool_calls": analyst.tool_calls,
+        "tool_call_notes": analyst.tool_call_notes,
+        "selected_tools": [tool.model_dump(mode="json") for tool in analyst.selected_tools],
         "rationale": analyst.rationale,
         "hypotheses": analyst.hypotheses,
         "uncertainty": analyst.uncertainty,
@@ -321,6 +326,7 @@ async def ingest_event(event: NormalizedEvent) -> Incident:
             "enabled": ollama_analyst.enabled,
             "used": False,
             "model": ollama_analyst.model,
+            "framework": ollama_analyst.framework,
             "authority_mode": OLLAMA_AUTHORITY_MODE,
             "error": str(exc),
         }

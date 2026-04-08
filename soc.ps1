@@ -59,6 +59,16 @@ function Invoke-JsonPost {
     $response | ConvertTo-Json -Depth 30
 }
 
+$PowerShellExe = if (Get-Command pwsh -ErrorAction SilentlyContinue) {
+    "pwsh"
+} elseif (Get-Command powershell.exe -ErrorAction SilentlyContinue) {
+    "powershell.exe"
+} else {
+    "powershell"
+}
+$AttackRunnerScript = Join-Path (Get-Location) "tools/demo-attack-runner/attack_runner.py"
+$AtomicDefaultScript = Join-Path (Get-Location) "tools/atomic-red-team/Invoke-AgenticAtomicDefault.ps1"
+
 switch ($Command) {
     "up" {
         Invoke-Checked docker compose up --build -d
@@ -115,16 +125,16 @@ switch ($Command) {
     "ai-pull" {
         Invoke-Checked docker compose --profile ai run --rm ollama-pull
     }
-    "attack-list" { Invoke-Checked python .\tools\demo-attack-runner\attack_runner.py list }
-    "attack-beacon" { Invoke-Checked powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\atomic-red-team\Invoke-AgenticAtomicDefault.ps1 -Scenario outbound-beacon }
-    "attack-script" { Invoke-Checked powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\atomic-red-team\Invoke-AgenticAtomicDefault.ps1 -Scenario suspicious-script }
-    "attack-bruteforce" { Invoke-Checked powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\atomic-red-team\Invoke-AgenticAtomicDefault.ps1 -Scenario bruteforce-success }
-    "telemetry-beacon" { Invoke-Checked python .\tools\demo-attack-runner\attack_runner.py run outbound-beacon --mode direct }
-    "telemetry-script" { Invoke-Checked python .\tools\demo-attack-runner\attack_runner.py run suspicious-script --mode direct }
-    "telemetry-bruteforce" { Invoke-Checked python .\tools\demo-attack-runner\attack_runner.py run bruteforce-success --mode direct }
-    "atomic-beacon" { Invoke-Checked powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\atomic-red-team\Invoke-AgenticAtomicDefault.ps1 -Scenario outbound-beacon }
-    "atomic-script" { Invoke-Checked powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\atomic-red-team\Invoke-AgenticAtomicDefault.ps1 -Scenario suspicious-script }
-    "atomic-bruteforce" { Invoke-Checked powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\atomic-red-team\Invoke-AgenticAtomicDefault.ps1 -Scenario bruteforce-success }
+    "attack-list" { Invoke-Checked python $AttackRunnerScript list }
+    "attack-beacon" { Invoke-Checked $PowerShellExe -NoProfile -ExecutionPolicy Bypass -File $AtomicDefaultScript -Scenario outbound-beacon }
+    "attack-script" { Invoke-Checked $PowerShellExe -NoProfile -ExecutionPolicy Bypass -File $AtomicDefaultScript -Scenario suspicious-script }
+    "attack-bruteforce" { Invoke-Checked $PowerShellExe -NoProfile -ExecutionPolicy Bypass -File $AtomicDefaultScript -Scenario bruteforce-success }
+    "telemetry-beacon" { Invoke-Checked python $AttackRunnerScript run outbound-beacon --mode direct }
+    "telemetry-script" { Invoke-Checked python $AttackRunnerScript run suspicious-script --mode direct }
+    "telemetry-bruteforce" { Invoke-Checked python $AttackRunnerScript run bruteforce-success --mode direct }
+    "atomic-beacon" { Invoke-Checked $PowerShellExe -NoProfile -ExecutionPolicy Bypass -File $AtomicDefaultScript -Scenario outbound-beacon }
+    "atomic-script" { Invoke-Checked $PowerShellExe -NoProfile -ExecutionPolicy Bypass -File $AtomicDefaultScript -Scenario suspicious-script }
+    "atomic-bruteforce" { Invoke-Checked $PowerShellExe -NoProfile -ExecutionPolicy Bypass -File $AtomicDefaultScript -Scenario bruteforce-success }
     "help" {
         Write-Host "Agentic SOC Core Windows command wrapper"
         Write-Host ""

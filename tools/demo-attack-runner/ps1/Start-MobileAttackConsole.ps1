@@ -23,13 +23,19 @@ if ($ApiKey -eq "" -and (Test-Path ".env.production")) {
     }
 }
 
-$lanIp = (Get-NetIPAddress -AddressFamily IPv4 |
-    Where-Object {
-        $_.IPAddress -notlike "127.*" -and
-        $_.IPAddress -notlike "169.254.*" -and
-        $_.PrefixOrigin -ne "WellKnown"
-    } |
-    Select-Object -First 1 -ExpandProperty IPAddress)
+if (Get-Command Get-NetIPAddress -ErrorAction SilentlyContinue) {
+    $lanIp = (Get-NetIPAddress -AddressFamily IPv4 |
+        Where-Object {
+            $_.IPAddress -notlike "127.*" -and
+            $_.IPAddress -notlike "169.254.*" -and
+            $_.PrefixOrigin -ne "WellKnown"
+        } |
+        Select-Object -First 1 -ExpandProperty IPAddress)
+} else {
+    $lanIp = (hostname -I 2>$null).Trim().Split(" ") |
+        Where-Object { $_ -and $_ -notlike "127.*" -and $_ -notlike "169.254.*" } |
+        Select-Object -First 1
+}
 
 if (-not $lanIp) {
     $lanIp = "YOUR-LAPTOP-IP"
@@ -50,4 +56,5 @@ if ($Backend -eq "atomic") {
 Write-Host "Press Ctrl+C here to stop the phone console."
 Write-Host ""
 
-python ".\tools\demo-attack-runner\mobile_attack_console.py" --host 0.0.0.0 --port $Port --normalizer-url $NormalizerUrl --api-key $ApiKey --token $Token --backend $Backend
+$runner = Join-Path (Get-Location) "tools/demo-attack-runner/mobile_attack_console.py"
+python $runner --host 0.0.0.0 --port $Port --normalizer-url $NormalizerUrl --api-key $ApiKey --token $Token --backend $Backend

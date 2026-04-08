@@ -28,19 +28,19 @@ $ScenarioMap = @{
     "outbound-beacon" = @{
         Technique = "T1071.001"
         Name = "Application Layer Protocol: Web Protocols"
-        SafeFallback = "Run-OutboundBeacon.ps1"
+        SafeFallback = "Run-Telemetry-OutboundBeacon.ps1"
         Guidance = "Pick an atomic that produces benign HTTP/S callback telemetry in your lab."
     }
     "suspicious-script" = @{
         Technique = "T1059.003"
         Name = "Command and Scripting Interpreter: Windows Command Shell"
-        SafeFallback = "Run-SuspiciousScript.ps1"
+        SafeFallback = "Run-Telemetry-SuspiciousScript.ps1"
         Guidance = "Pick a benign command-line atomic that does not download or execute untrusted payloads."
     }
     "bruteforce-success" = @{
         Technique = "T1110"
         Name = "Brute Force"
-        SafeFallback = "Run-BruteforceSuccess.ps1"
+        SafeFallback = "Run-Telemetry-BruteforceSuccess.ps1"
         Guidance = "Prefer telemetry emission unless you have a disposable auth target."
     }
     "exfil-burst" = @{
@@ -121,8 +121,9 @@ function Resolve-AtomicsPath {
 function Invoke-SafeFallbackTelemetry {
     param([string]$FallbackScript)
 
-    $scriptPath = Resolve-Path (Join-Path $PSScriptRoot "..\demo-attack-runner\ps1\$FallbackScript")
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $scriptPath.Path
+    $fallbackDir = Join-Path (Split-Path -Parent $PSScriptRoot) "demo-attack-runner/ps1"
+    $scriptPath = Resolve-Path (Join-Path $fallbackDir $FallbackScript)
+    & $scriptPath.Path
     if ($LASTEXITCODE -ne 0) {
         throw "Safe fallback telemetry failed with exit code ${LASTEXITCODE}."
     }
@@ -155,7 +156,7 @@ if ($module -eq "" -or $atomics -eq "") {
     Write-Host "  Atomics: C:\AtomicRedTeam\atomics"
     Write-Host ""
     Write-Host "For a safe demo without installing Atomic Red Team, run:"
-    Write-Host "  powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\atomic-red-team\Invoke-AgenticAtomic.ps1 -Scenario $Scenario -Mode EmitTelemetry"
+    Write-Host "  pwsh -NoProfile -ExecutionPolicy Bypass -File ./tools/atomic-red-team/Invoke-AgenticAtomic.ps1 -Scenario $Scenario -Mode EmitTelemetry"
     throw "Atomic Red Team local files not found."
 }
 
@@ -195,4 +196,3 @@ if ($Mode -eq "Execute") {
     Invoke-AtomicTest @params
     return
 }
-

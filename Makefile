@@ -1,6 +1,7 @@
 SHELL := /bin/sh
 COMPOSE ?= docker compose
 PROJECT ?= agentic-soc-core
+PWSH ?= pwsh
 
 .PHONY: up down build logs reset seed test demo-scenario-1 demo-scenario-2 demo-scenario-3 demo-exfil generate-reports screenshots lint format e2e ps prod-up prod-ai-up prod-down ai-up ai-pull attack-list attack-beacon attack-script attack-bruteforce telemetry-beacon telemetry-script telemetry-bruteforce
 
@@ -45,13 +46,13 @@ attack-list:
 	python tools/demo-attack-runner/attack_runner.py list
 
 attack-beacon:
-	powershell.exe -NoProfile -ExecutionPolicy Bypass -File tools/atomic-red-team/Invoke-AgenticAtomicDefault.ps1 -Scenario outbound-beacon
+	$(PWSH) -NoProfile -ExecutionPolicy Bypass -File tools/atomic-red-team/Invoke-AgenticAtomicDefault.ps1 -Scenario outbound-beacon
 
 attack-script:
-	powershell.exe -NoProfile -ExecutionPolicy Bypass -File tools/atomic-red-team/Invoke-AgenticAtomicDefault.ps1 -Scenario suspicious-script
+	$(PWSH) -NoProfile -ExecutionPolicy Bypass -File tools/atomic-red-team/Invoke-AgenticAtomicDefault.ps1 -Scenario suspicious-script
 
 attack-bruteforce:
-	powershell.exe -NoProfile -ExecutionPolicy Bypass -File tools/atomic-red-team/Invoke-AgenticAtomicDefault.ps1 -Scenario bruteforce-success
+	$(PWSH) -NoProfile -ExecutionPolicy Bypass -File tools/atomic-red-team/Invoke-AgenticAtomicDefault.ps1 -Scenario bruteforce-success
 
 telemetry-beacon:
 	python tools/demo-attack-runner/attack_runner.py run outbound-beacon --mode direct

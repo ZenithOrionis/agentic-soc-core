@@ -5,6 +5,7 @@ import html
 import json
 import os
 import secrets
+import shutil
 import subprocess
 import sys
 from http import HTTPStatus
@@ -176,9 +177,13 @@ class MobileAttackHandler(BaseHTTPRequestHandler):
         if not script.exists():
             self.send_text(HTTPStatus.INTERNAL_SERVER_ERROR, f"Atomic dispatcher not found: {script}")
             return
+        ps_executable = shutil.which("pwsh") or shutil.which("powershell.exe") or shutil.which("powershell")
+        if not ps_executable:
+            self.send_text(HTTPStatus.INTERNAL_SERVER_ERROR, "PowerShell runtime not found. Install pwsh in the VM.")
+            return
         completed = subprocess.run(
             [
-                "powershell.exe",
+                ps_executable,
                 "-NoProfile",
                 "-ExecutionPolicy",
                 "Bypass",

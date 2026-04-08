@@ -7,7 +7,7 @@ if [[ $# -ne 1 ]]; then
 fi
 
 SCENARIO="$1"
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 
 echo
 echo "AegisCore live demo launcher"

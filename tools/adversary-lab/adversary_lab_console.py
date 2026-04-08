@@ -256,7 +256,7 @@ PAGE = """<!doctype html>
       }
       el.textContent = entries.map((entry) => (
         `${entry.ts} | ${entry.scenario} | ${entry.action} | rc=${entry.returncode}\n${entry.summary}\n`
-      )).join("\n");
+      )).join("\\n");
     }
 
     async function refresh() {

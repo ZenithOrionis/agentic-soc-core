@@ -34,7 +34,7 @@ class OllamaAnalyst:
 
     def system_prompt(self) -> str:
         return (
-            "You are a senior SOC analyst embedded inside Agentic SOC Core. "
+            "You are a senior SOC analyst embedded inside AegisCore. "
             "You must make analyst-style triage decisions using only the evidence provided. "
             "You are not allowed to invent evidence. "
             "Return only valid JSON matching this schema: "

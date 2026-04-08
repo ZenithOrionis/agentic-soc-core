@@ -136,7 +136,7 @@ switch ($Command) {
     "atomic-script" { Invoke-Checked $PowerShellExe -NoProfile -ExecutionPolicy Bypass -File $AtomicDefaultScript -Scenario suspicious-script }
     "atomic-bruteforce" { Invoke-Checked $PowerShellExe -NoProfile -ExecutionPolicy Bypass -File $AtomicDefaultScript -Scenario bruteforce-success }
     "help" {
-        Write-Host "Agentic SOC Core Windows command wrapper"
+        Write-Host "AegisCore Windows command wrapper"
         Write-Host ""
         Write-Host "Usage:"
         Write-Host "  .\soc.cmd up"

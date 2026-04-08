@@ -239,7 +239,7 @@ def run_scenario(args: argparse.Namespace) -> None:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="demo-attack-runner",
-        description="Safe benign demo attack runner for Agentic SOC Core.",
+        description="Safe benign demo attack runner for AegisCore.",
     )
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("list", help="List available safe demo scenarios.")
@@ -268,4 +268,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
-

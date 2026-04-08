@@ -1,6 +1,6 @@
 # Kali Host Telemetry
 
-This guide connects real process execution on a Kali VM to Agentic SOC Core without requiring a full Wazuh agent deployment.
+This guide connects real process execution on a Kali VM to AegisCore without requiring a full Wazuh agent deployment.
 
 ## What It Uses
 

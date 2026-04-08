@@ -1,6 +1,6 @@
 # Ollama Analyst Decision Layer
 
-Agentic SOC Core now includes an optional local Ollama analyst. This is the first true local AI component in the system.
+AegisCore now includes an optional local Ollama analyst. This is the first true local AI component in the system.
 
 ## What It Does
 

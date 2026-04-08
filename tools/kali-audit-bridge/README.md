@@ -1,6 +1,6 @@
 # Kali Audit Bridge
 
-This bridge makes real host process activity in Kali show up in Agentic SOC Core by:
+This bridge makes real host process activity in Kali show up in AegisCore by:
 
 1. Enabling `auditd` exec logging.
 2. Tailing `/var/log/audit/audit.log`.

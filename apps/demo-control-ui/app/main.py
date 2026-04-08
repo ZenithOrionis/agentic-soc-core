@@ -17,7 +17,7 @@ APP_DIR = Path(__file__).resolve().parent
 THREAT_SIMULATOR_URL = os.getenv("THREAT_SIMULATOR_URL", "http://localhost:8005")
 EXPLAINABILITY_URL = os.getenv("EXPLAINABILITY_URL", "http://localhost:8004")
 
-app = FastAPI(title="Agentic SOC Core Demo UI", version="0.1.0")
+app = FastAPI(title="AegisCore Command Deck", version="0.1.0")
 install_security_middleware(app, "demo-control-ui", public_prefixes={"/", "/login", "/static"})
 app.mount("/static", StaticFiles(directory=str(APP_DIR / "static")), name="static")
 templates = Jinja2Templates(directory=str(APP_DIR / "templates"))
@@ -62,7 +62,7 @@ def index(request: Request) -> HTMLResponse | RedirectResponse:
         "index.html",
         {
             "request": request,
-            "title": os.getenv("DEMO_UI_TITLE", "Agentic SOC Core"),
+            "title": os.getenv("DEMO_UI_TITLE", "AegisCore"),
             "incidents": incidents,
             "events": events,
             "actions": actions,

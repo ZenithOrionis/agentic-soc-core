@@ -9,33 +9,41 @@
 <body>
   <header>
     <div>
-      <p class="eyebrow">Local deterministic SOC demo</p>
+      <div class="brand-mark">AegisCore</div>
+      <p class="eyebrow">Autonomous Defense Command Deck</p>
       <h1>{{ title }}</h1>
-      <p>Policy-driven alert triage, containment, local case management, and explainable PDF reporting.</p>
+      <p class="hero-copy">Dark-mode command visibility for policy-driven alert triage, automated containment, AI-assisted analyst decisions, and exportable executive reporting.</p>
     </div>
-    <div class="status-pill">System online</div>
+    <div class="status-pill">Aegis shield online</div>
   </header>
 
   <main>
     <section class="panel">
-      <h2>Demo Scenarios</h2>
+      <div class="panel-title-row">
+        <div>
+          <p class="eyebrow">Operator Controls</p>
+          <h2>Aegis Scenarios</h2>
+        </div>
+        <span class="badge">{{ "Production" if production else "Demo Lab" }}</span>
+      </div>
       {% if production %}
-      <p>Scenario simulators are disabled in production mode. Ingest events from Wazuh, Suricata, or your pipeline through the Normalizer API.</p>
+      <p>Scenario simulators are disabled in production mode. Stream telemetry from Wazuh, Suricata, or your intake pipeline through the AegisCore Normalizer API.</p>
       {% else %}
       <div class="button-row">
-        <form method="post" action="/trigger/outbound-beacon"><button>Scenario 1: C2-like Beacon</button></form>
-        <form method="post" action="/trigger/suspicious-script"><button>Scenario 2: Suspicious Script</button></form>
-        <form method="post" action="/trigger/bruteforce-success"><button>Scenario 3: Brute Force + Success</button></form>
-        <form method="post" action="/trigger/exfil-burst"><button>Bonus: Exfil-like Burst</button></form>
+        <form method="post" action="/trigger/outbound-beacon"><button>Aegis Beacon Trace</button></form>
+        <form method="post" action="/trigger/suspicious-script"><button>Aegis Script Hunt</button></form>
+        <form method="post" action="/trigger/bruteforce-success"><button>Aegis Credential Breach</button></form>
+        <form method="post" action="/trigger/exfil-burst"><button>Aegis Exfil Sweep</button></form>
       </div>
       {% endif %}
     </section>
 
     <section class="grid">
       <div class="panel">
-        <h2>Service Links</h2>
+        <p class="eyebrow">Platform Surface</p>
+        <h2>Aegis Services</h2>
         {% if production %}
-        <p class="notice">Production APIs require the same SOC API key. Browser clicks to protected API ports can show an auth error; use <a href="/api-access">API access instructions</a> for direct calls.</p>
+        <p class="notice">Production APIs require the same SOC API key. Browser clicks to protected API ports can show an auth error; use <a href="/api-access">Aegis API access instructions</a> for direct calls.</p>
         {% endif %}
         <ul class="links">
           {% for name, url in services.items() %}
@@ -44,19 +52,21 @@
         </ul>
       </div>
       <div class="panel">
-        <h2>Latest Actions</h2>
+        <p class="eyebrow">Execution Trail</p>
+        <h2>Latest Aegis Actions</h2>
         {% for action in actions[:6] %}
         <article class="mini-card">
           <strong>{{ action.action_type }}</strong> on {{ action.target }}<br>
           <span>{{ action.status }} - {{ action.mode }}</span>
         </article>
         {% else %}
-        <p>No actions recorded yet. Trigger a scenario to start the flow.</p>
+        <p>No actions recorded yet. Trigger a scenario to begin the AegisCore workflow.</p>
         {% endfor %}
       </div>
     </section>
 
     <section class="panel">
+      <p class="eyebrow">Threat Queue</p>
       <h2>Live Incidents</h2>
       <table>
         <tr><th>Incident</th><th>Status</th><th>Severity</th><th>Confidence</th><th>Asset</th><th>Case</th><th>Report</th></tr>
@@ -83,6 +93,7 @@
     </section>
 
     <section class="panel">
+      <p class="eyebrow">Signal Intake</p>
       <h2>Recent Normalized Events</h2>
       <table>
         <tr><th>Time</th><th>Source</th><th>Rule</th><th>Asset</th><th>Tags</th></tr>

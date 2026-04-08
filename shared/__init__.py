@@ -1,2 +1,1 @@
-"""Shared Agentic SOC Core package."""
-
+"""Shared AegisCore package."""

@@ -3,22 +3,23 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Agentic SOC Core Login</title>
+  <title>AegisCore Access</title>
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
   <main class="login-main">
     <section class="panel login-panel">
-      <p class="eyebrow">Production access</p>
-      <h1>Agentic SOC Core</h1>
-      <p>Enter the SOC API key issued through your deployment secret store.</p>
+      <div class="brand-mark">AegisCore</div>
+      <p class="eyebrow">Protected Command Access</p>
+      <h1>AegisCore</h1>
+      <p>Enter the SOC API key issued through your deployment secret store to unlock the command deck.</p>
       {% if request.query_params.get("error") %}
       <p class="error">Invalid API key.</p>
       {% endif %}
       <form method="post" action="/login">
-        <label for="api_key">SOC API Key</label>
+        <label for="api_key">AegisCore API Key</label>
         <input id="api_key" name="api_key" type="password" autocomplete="current-password" required>
-        <button type="submit">Sign in</button>
+        <button type="submit">Enter Command Deck</button>
       </form>
     </section>
   </main>

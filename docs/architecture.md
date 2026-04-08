@@ -1,6 +1,6 @@
 # Architecture
 
-Agentic SOC Core uses three layers: detection/ingest, triage/response, and explainability/reporting.
+AegisCore uses three layers: detection/ingest, triage/response, and explainability/reporting.
 
 ```mermaid
 flowchart TD

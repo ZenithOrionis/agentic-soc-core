@@ -354,7 +354,7 @@ def watch(args: argparse.Namespace) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Tail Kali auditd exec events and post suspicious ones to Agentic SOC Core.")
+    parser = argparse.ArgumentParser(description="Tail Kali auditd exec events and post suspicious ones to AegisCore.")
     parser.add_argument("--normalizer-url", default=os.getenv("NORMALIZER_URL", "http://127.0.0.1:8001"))
     parser.add_argument("--api-key", default="")
     parser.add_argument("--env-file", default=".env.production")

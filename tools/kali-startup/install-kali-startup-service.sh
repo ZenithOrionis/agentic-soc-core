@@ -6,7 +6,7 @@ SERVICE_PATH="/etc/systemd/system/agentic-soc-startup.service"
 
 cat <<EOF | sudo tee "$SERVICE_PATH" >/dev/null
 [Unit]
-Description=Agentic SOC Core Kali startup automation
+Description=AegisCore Kali startup automation
 After=network-online.target docker.service auditd.service
 Wants=network-online.target docker.service auditd.service
 

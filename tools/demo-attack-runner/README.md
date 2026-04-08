@@ -1,6 +1,6 @@
 # Demo Attack Runner
 
-This is a separate benign demo attack tool for Agentic SOC Core. It does not run malware, exploit code, or destructive commands. It only sends safe adversary-emulation events to the SOC demo.
+This is a separate benign demo attack tool for AegisCore. It does not run malware, exploit code, or destructive commands. It only sends safe adversary-emulation events to the SOC demo.
 
 ## PowerShell Usage
 

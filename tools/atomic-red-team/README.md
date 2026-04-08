@@ -1,6 +1,6 @@
 # Atomic Red Team Bridge
 
-This folder integrates Atomic Red Team into Agentic SOC Core safely.
+This folder integrates Atomic Red Team into AegisCore safely.
 
 The default attack backend now routes to this Atomic bridge. The default mode is controlled by `.env.atomic`. The generated local default is `Preview`, which lists matching atomics for a scenario. Nothing executes unless `.env.atomic` sets `ATOMIC_DEFAULT_MODE=Execute`, `ATOMIC_REAL_ATTACKS_ENABLED=true`, and explicit test numbers for the scenario.
 

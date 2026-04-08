@@ -1,6 +1,6 @@
-# Agentic SOC Core
+# AegisCore
 
-Agentic SOC Core is a local, open-source, Docker Compose security operations demo that replaces a large portion of repetitive L1 triage work for controlled demonstrations. It ingests Suricata-like and Wazuh-like events, normalizes them into a common schema, correlates incidents, applies deterministic policy, executes safe demo containment, opens local TheHive-style cases, runs local Cortex-style analyzers, triggers Shuffle-style workflows, and generates HTML/PDF incident reports.
+AegisCore is a local, open-source, Docker Compose security operations demo that replaces a large portion of repetitive L1 triage work for controlled demonstrations. It ingests Suricata-like and Wazuh-like events, normalizes them into a common schema, correlates incidents, applies deterministic policy, executes safe demo containment, opens local TheHive-style cases, runs local Cortex-style analyzers, triggers Shuffle-style workflows, and generates HTML/PDF incident reports.
 
 This repository intentionally defaults to a reliable **lite mode**. Heavy products such as Wazuh, TheHive, Cortex, Shuffle, and OpenSearch are represented by working local adapters and documented swap points. Optional Suricata and OpenSearch Compose profiles are included for extension.
 

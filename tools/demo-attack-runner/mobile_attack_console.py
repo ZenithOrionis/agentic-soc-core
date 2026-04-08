@@ -163,7 +163,7 @@ class MobileAttackHandler(BaseHTTPRequestHandler):
                 {
                     "scenario": scenario,
                     "safe": True,
-                    "message": "Benign demo telemetry sent to Agentic SOC Core.",
+                    "message": "Benign demo telemetry sent to AegisCore.",
                     "events": results,
                 },
                 indent=2,
@@ -211,7 +211,7 @@ class MobileAttackHandler(BaseHTTPRequestHandler):
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Phone-friendly safe attack console for Agentic SOC Core.")
+    parser = argparse.ArgumentParser(description="Phone-friendly safe attack console for AegisCore.")
     parser.add_argument("--host", default="0.0.0.0")
     parser.add_argument("--port", type=int, default=8099)
     parser.add_argument("--token", default=os.getenv("MOBILE_ATTACK_TOKEN", ""))

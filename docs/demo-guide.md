@@ -44,6 +44,14 @@ Windows PowerShell:
 .\soc.cmd generate-reports
 ```
 
+If you are running Atomic Red Team inside a Kali VM and want real host activity to show up in the dashboard, install the host telemetry bridge first:
+
+```bash
+chmod +x tools/kali-audit-bridge/install-kali-audit-bridge.sh
+./tools/kali-audit-bridge/install-kali-audit-bridge.sh
+systemctl status --no-pager agentic-soc-audit-bridge.service
+```
+
 Expected outcome:
 
 - At least three incidents are created.

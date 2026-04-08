@@ -1,0 +1,5 @@
+## Agentic SOC Kali host telemetry rule set
+## Captures user-space execve activity so the host-side audit bridge can classify suspicious commands.
+
+-a always,exit -F arch=b64 -S execve -F auid>=1000 -F auid!=unset -k agentic_exec
+-a always,exit -F arch=b32 -S execve -F auid>=1000 -F auid!=unset -k agentic_exec

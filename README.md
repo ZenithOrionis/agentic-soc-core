@@ -214,6 +214,17 @@ Docker profile:
 docker compose --profile demo-attacks run --rm demo-attack-runner run outbound-beacon --mode direct --normalizer-url http://normalizer:8000
 ```
 
+## Real Kali Host Telemetry
+
+To make real Atomic Red Team execution on Kali appear in the dashboard, install the lightweight host telemetry bridge:
+
+```bash
+chmod +x tools/kali-audit-bridge/install-kali-audit-bridge.sh
+./tools/kali-audit-bridge/install-kali-audit-bridge.sh
+```
+
+This enables `auditd`, tails Kali exec events, classifies suspicious commands, and posts Wazuh-like events to the normalizer. Details: [tools/kali-audit-bridge/README.md](tools/kali-audit-bridge/README.md).
+
 ## Demo Scenarios
 
 - Scenario 1: Suspicious outbound beacon / C2-like traffic. Repeated callbacks are normalized, correlated, blocked in the demo firewall state, quarantined in demo state, cased, and reported.

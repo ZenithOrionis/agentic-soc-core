@@ -22,6 +22,20 @@ WAZUH_RULE_MAP = {
         "tags": ["suspicious-script", "execution"],
         "attack": [AttackMapping(tactic="Execution", technique="Command and Scripting Interpreter", technique_id="T1059")],
     },
+    "100201": {
+        "tags": ["suspicious-script", "download", "execution"],
+        "attack": [
+            AttackMapping(tactic="Execution", technique="Command and Scripting Interpreter", technique_id="T1059"),
+            AttackMapping(tactic="Command and Control", technique="Ingress Tool Transfer", technique_id="T1105"),
+        ],
+    },
+    "100202": {
+        "tags": ["suspicious-script", "reverse-shell", "execution", "command-and-control"],
+        "attack": [
+            AttackMapping(tactic="Execution", technique="Command and Scripting Interpreter", technique_id="T1059"),
+            AttackMapping(tactic="Command and Control", technique="Application Layer Protocol", technique_id="T1071"),
+        ],
+    },
     "100300": {
         "tags": ["credential-access", "bruteforce"],
         "attack": [AttackMapping(tactic="Credential Access", technique="Brute Force", technique_id="T1110")],

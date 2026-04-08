@@ -83,6 +83,27 @@ Cleanup:
 powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\atomic-red-team\Invoke-AgenticAtomic.ps1 -Scenario suspicious-script -Mode Cleanup -TestNumbers 1
 ```
 
+## One-Click Launchers
+
+Once `.env.atomic` is configured with your execution mode, Atomic path, and explicit test numbers, you can use the one-click launchers instead of passing flags each time.
+
+Windows PowerShell:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\atomic-red-team\ps1\Run-OneClick-SuspiciousScript.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\atomic-red-team\ps1\Run-OneClick-OutboundBeacon.ps1
+```
+
+Kali / Linux:
+
+```bash
+chmod +x ./tools/atomic-red-team/sh/*.sh
+./tools/atomic-red-team/sh/run-oneclick-suspicious-script.sh
+./tools/atomic-red-team/sh/run-oneclick-outbound-beacon.sh
+```
+
+These launchers call `Invoke-AgenticAtomicDefault.ps1`, so they honor your `.env.atomic` settings exactly.
+
 ## Expected Local Paths
 
 By default the bridge expects:

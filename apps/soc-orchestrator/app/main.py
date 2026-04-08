@@ -22,6 +22,11 @@ store = Store()
 policy = PolicyEngine()
 ollama_analyst = OllamaAnalyst()
 RESPONSE_EXECUTOR_URL = os.getenv("RESPONSE_EXECUTOR_URL", "http://localhost:8003")
+OLLAMA_AUTHORITY_MODE = os.getenv("OLLAMA_AUTHORITY_MODE", "advisory").lower()
+OLLAMA_AUTHORITY_MIN_CONFIDENCE = float(os.getenv("OLLAMA_AUTHORITY_MIN_CONFIDENCE", "0.80"))
+OLLAMA_AUTHORITY_MAX_RISK = os.getenv("OLLAMA_AUTHORITY_MAX_RISK", "medium").lower()
+OLLAMA_EXECUTION_USE_APPROVAL_TOKEN = os.getenv("OLLAMA_EXECUTION_USE_APPROVAL_TOKEN", "false").lower() == "true"
+OLLAMA_EXECUTION_APPROVAL_TOKEN = os.getenv("RESPONSE_APPROVAL_TOKEN", "")
 
 AI_ACTION_ALLOWLIST = {
     "create_case",
@@ -35,6 +40,7 @@ AI_ACTION_ALLOWLIST = {
     "stop_container",
     "kill_process",
 }
+RISK_ORDER = ["none", "low", "medium", "high"]
 
 
 def correlation_key(event: NormalizedEvent) -> str:
@@ -112,6 +118,17 @@ def guardrail_ai_actions(incident: Incident, requested_actions: list[str]) -> li
     return list(dict.fromkeys(approved))
 
 
+def authority_allows_action(action: str, incident: Incident) -> bool:
+    if action not in AI_ACTION_ALLOWLIST:
+        return False
+    if action in policy.policy.get("irreversible_actions", []):
+        return False
+    if incident.confidence < OLLAMA_AUTHORITY_MIN_CONFIDENCE:
+        return False
+    risk = policy.policy.get("action_risk", {}).get(action, "medium")
+    return RISK_ORDER.index(risk) <= RISK_ORDER.index(OLLAMA_AUTHORITY_MAX_RISK)
+
+
 def severity_from_confidence(current: str, confidence: float) -> str:
     if confidence >= 0.93:
         return "critical" if current in {"critical", "high"} else "high"
@@ -126,16 +143,37 @@ def merge_ai_decision(
     incident: Incident,
     actions: list[str],
     analyst: AnalystDecision | None,
-) -> list[str]:
+) -> tuple[list[str], bool]:
     if analyst is None:
         incident.metadata["ollama_analyst"] = {"enabled": ollama_analyst.enabled, "used": False}
-        return actions
+        return actions, False
 
     original_confidence = incident.confidence
     incident.confidence = round(max(0.0, min(0.99, incident.confidence + analyst.confidence_adjustment)), 2)
     incident.severity = severity_from_confidence(incident.severity, incident.confidence)  # type: ignore[assignment]
     ai_actions = guardrail_ai_actions(incident, analyst.recommended_actions)
     selected_actions = list(dict.fromkeys([*actions, *ai_actions]))
+    authoritative = False
+
+    if OLLAMA_AUTHORITY_MODE in {"bounded", "direct-lab"}:
+        authoritative_actions = [action for action in analyst.recommended_actions if authority_allows_action(action, incident)]
+        if authoritative_actions:
+            authoritative = True
+            selected_actions = list(dict.fromkeys(authoritative_actions))
+            if incident.decision:
+                incident.decision.selected = f"ollama:{analyst.disposition}:authoritative"
+                incident.decision.auto_approved = True
+                incident.decision.action_risk = max(
+                    (
+                        policy.policy.get("action_risk", {}).get(action, "medium")
+                        for action in selected_actions
+                    ),
+                    key=lambda risk: RISK_ORDER.index(risk),
+                    default="none",
+                )
+                incident.decision.rationale.append(
+                    f"Ollama authority mode {OLLAMA_AUTHORITY_MODE} selected primary actions: {', '.join(selected_actions)}."
+                )
 
     if analyst.disposition == "suppress" and original_confidence < 0.75:
         selected_actions = []
@@ -154,6 +192,8 @@ def merge_ai_decision(
         "enabled": True,
         "used": True,
         "model": ollama_analyst.model,
+        "authority_mode": OLLAMA_AUTHORITY_MODE,
+        "authority_used": authoritative,
         "disposition": analyst.disposition,
         "confidence_adjustment": analyst.confidence_adjustment,
         "recommended_actions": analyst.recommended_actions,
@@ -165,15 +205,15 @@ def merge_ai_decision(
     }
     incident.timeline.append(
         TimelineEntry(
-            kind="ollama_analyst_decision",
-            summary=f"Ollama analyst recommended {analyst.disposition}.",
+                kind="ollama_analyst_decision",
+            summary=f"Ollama analyst recommended {analyst.disposition}{' and selected executable actions' if authoritative else ''}.",
             details=incident.metadata["ollama_analyst"],
         )
     )
-    return selected_actions
+    return selected_actions, authoritative
 
 
-async def execute_actions(incident: Incident, actions: list[str]) -> None:
+async def execute_actions(incident: Incident, actions: list[str], ai_authoritative: bool = False) -> None:
     existing = {a.action_type for a in store.list_actions(incident.id)}
     for action in actions:
         if action in existing and action not in {"attach_observables", "generate_report"}:
@@ -184,6 +224,12 @@ async def execute_actions(incident: Incident, actions: list[str]) -> None:
             "target": action_target(action, incident),
             "rationale": incident.decision.rationale if incident.decision else [],
         }
+        if ai_authoritative and OLLAMA_EXECUTION_USE_APPROVAL_TOKEN and OLLAMA_EXECUTION_APPROVAL_TOKEN:
+            payload["approval_token"] = OLLAMA_EXECUTION_APPROVAL_TOKEN
+            payload["rationale"] = [
+                f"Ollama authority mode {OLLAMA_AUTHORITY_MODE} selected this action.",
+                *payload["rationale"],
+            ]
         try:
             async with httpx.AsyncClient(timeout=15.0) as client:
                 response = await client.post(
@@ -253,6 +299,7 @@ async def ingest_event(event: NormalizedEvent) -> Incident:
     plan = policy.plan(incident)
     incident.decision = plan.decision
     actions = plan.actions
+    ai_authoritative = False
     try:
         analyst = await ollama_analyst.decide(
             incident,
@@ -263,7 +310,7 @@ async def ingest_event(event: NormalizedEvent) -> Incident:
                 "score_floor_by_severity": SEVERITY_BASE,
             },
         )
-        actions = merge_ai_decision(incident, actions, analyst)
+        actions, ai_authoritative = merge_ai_decision(incident, actions, analyst)
     except Exception as exc:  # noqa: BLE001
         incident.metadata["ollama_analyst"] = {
             "enabled": ollama_analyst.enabled,
@@ -287,5 +334,5 @@ async def ingest_event(event: NormalizedEvent) -> Incident:
     store.add_event(event, key)
     store.upsert_incident(incident)
     store.add_audit("incident_decision", incident.id, incident.model_dump(mode="json"))
-    await execute_actions(incident, actions)
+    await execute_actions(incident, actions, ai_authoritative=ai_authoritative)
     return incident

@@ -34,7 +34,7 @@ Ollama can influence:
 
 ## Guardrails
 
-Ollama does not bypass policy.
+By default, Ollama does not bypass policy.
 
 The orchestrator runs Ollama-recommended actions through guardrails before execution:
 
@@ -46,6 +46,27 @@ The orchestrator runs Ollama-recommended actions through guardrails before execu
 - if Ollama is unavailable or returns invalid JSON, deterministic policy continues
 
 This allows Ollama to behave like an analyst while deterministic policy remains the execution control plane.
+
+## AI Authority Mode
+
+If you explicitly enable it, Ollama can become the primary action selector.
+
+Environment variables:
+
+```env
+OLLAMA_AUTHORITY_MODE=advisory|bounded|direct-lab
+OLLAMA_AUTHORITY_MIN_CONFIDENCE=0.85
+OLLAMA_AUTHORITY_MAX_RISK=medium
+OLLAMA_EXECUTION_USE_APPROVAL_TOKEN=true
+```
+
+Mode behavior:
+
+- `advisory`: default; Ollama only recommends
+- `bounded`: Ollama can select the primary executable action set, limited by confidence and max-risk guardrails
+- `direct-lab`: same as bounded, intended for isolated lab/demo environments where you want the agent to choose and execute actions end-to-end
+
+If `OLLAMA_EXECUTION_USE_APPROVAL_TOKEN=true`, the orchestrator passes `RESPONSE_APPROVAL_TOKEN` to the executor for AI-authoritative actions. This allows containment/process actions to run without a separate human approval step. Use this only in isolated labs.
 
 ## Start With Ollama
 
@@ -74,4 +95,3 @@ Change it in `.env.production` if your workstation has a different model already
 - Ollama client: `shared/clients/ollama.py`
 - Orchestrator integration: `apps/soc-orchestrator/app/main.py`
 - Report rendering: `apps/explainability-service/app/templates/report.html`
-

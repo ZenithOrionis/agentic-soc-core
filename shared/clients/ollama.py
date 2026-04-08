@@ -30,13 +30,13 @@ class OllamaAnalyst:
         self.model = os.getenv("OLLAMA_MODEL", "qwen2.5:3b-instruct")
         self.timeout = float(os.getenv("OLLAMA_TIMEOUT_SECONDS", "30"))
         self.temperature = float(os.getenv("OLLAMA_TEMPERATURE", "0.1"))
+        self.authority_mode = os.getenv("OLLAMA_AUTHORITY_MODE", "advisory").lower()
 
     def system_prompt(self) -> str:
         return (
             "You are a senior SOC analyst embedded inside Agentic SOC Core. "
             "You must make analyst-style triage decisions using only the evidence provided. "
             "You are not allowed to invent evidence. "
-            "You are not the final execution authority for risky actions; deterministic policy and approval gates still apply. "
             "Return only valid JSON matching this schema: "
             "{"
             '"disposition":"suppress|enrich|case|contain|remediate|escalate",'
@@ -54,8 +54,9 @@ class OllamaAnalyst:
             "incident": incident.model_dump(mode="json"),
             "latest_event": event.model_dump(mode="json"),
             "deterministic_policy_plan": deterministic_plan,
+            "authority_mode": self.authority_mode,
             "allowed_dispositions": ["suppress", "enrich", "case", "contain", "remediate", "escalate"],
-            "safety_note": "Do not recommend destructive actions. Prefer case/enrichment when confidence is uncertain.",
+            "safety_note": "Do not recommend destructive actions. Prefer case/enrichment when confidence is uncertain. If authority_mode is advisory, your actions are recommendations only. If authority_mode is bounded or direct-lab, choose only necessary actions supported by the evidence.",
         }
         return json.dumps(payload, indent=2)
 
@@ -85,4 +86,3 @@ class OllamaAnalyst:
             return AnalystDecision.model_validate_json(content)
         except ValidationError:
             return AnalystDecision.model_validate(json.loads(content))
-

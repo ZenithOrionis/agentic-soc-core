@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{ title }}</title>
+  <meta http-equiv="refresh" content="20">
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
@@ -14,7 +15,10 @@
       <h1>{{ title }}</h1>
       <p class="hero-copy">Dark-mode command visibility for policy-driven alert triage, automated containment, AI-assisted analyst decisions, and exportable executive reporting.</p>
     </div>
-    <div class="status-pill">Aegis shield online</div>
+    <div class="header-status">
+      <div class="status-pill">Aegis shield online</div>
+      <div class="refresh-pill">Auto-refresh every 20s</div>
+    </div>
   </header>
 
   <main>
@@ -66,30 +70,117 @@
     </section>
 
     <section class="panel">
-      <p class="eyebrow">Threat Queue</p>
-      <h2>Live Incidents</h2>
-      <table>
-        <tr><th>Incident</th><th>Status</th><th>Severity</th><th>Confidence</th><th>Asset</th><th>Case</th><th>Report</th></tr>
+      <div class="panel-title-row">
+        <div>
+          <p class="eyebrow">Threat Queue</p>
+          <h2>Live Incidents</h2>
+        </div>
+        <span class="badge">{{ incidents|length }} tracked</span>
+      </div>
+      <div class="incident-grid">
         {% for incident in incidents %}
-        <tr>
-          <td>{{ incident.title }}<br><small>{{ incident.id }}</small></td>
-          <td><span class="badge">{{ incident.status }}</span></td>
-          <td>{{ incident.severity }}</td>
-          <td>{{ "%.0f"|format(incident.confidence * 100) }}%</td>
-          <td>{{ incident.asset.hostname }}</td>
-          <td>{{ incident.case_id or "pending" }}</td>
-          <td>
+        {% set analyst = incident.metadata.get("ollama_analyst", {}) %}
+        <article class="incident-card">
+          <div class="incident-card-top">
+            <div>
+              <h3 class="incident-title">{{ incident.title }}</h3>
+              <p class="incident-subtitle">{{ incident.id }}</p>
+            </div>
+            <div class="incident-badges">
+              <span class="badge">{{ incident.status }}</span>
+              <span class="badge badge-severity">{{ incident.severity }}</span>
+              <span class="badge badge-confidence">{{ "%.0f"|format(incident.confidence * 100) }}%</span>
+            </div>
+          </div>
+
+          <div class="incident-meta">
+            <div><span class="meta-label">Asset</span><span>{{ incident.asset.hostname }}</span></div>
+            <div><span class="meta-label">Case</span><span>{{ incident.case_id or "pending" }}</span></div>
+            <div><span class="meta-label">Scenario</span><span>{{ incident.metadata.get("primary_scenario", "generic") }}</span></div>
+            <div><span class="meta-label">Report</span><span>
             {% if reports[incident.id] %}
             <a href="/reports/{{ incident.id }}/pdf">PDF</a>
             {% else %}
             pending
             {% endif %}
-          </td>
-        </tr>
+            </span></div>
+          </div>
+
+          {% if incident.metadata.get("tags") %}
+          <div class="chip-row">
+            {% for tag in incident.metadata.get("tags", [])[:8] %}
+            <span class="chip">{{ tag }}</span>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          {% if incident.decision %}
+          <div class="incident-section">
+            <div class="section-label">Decision</div>
+            <p class="section-copy">{{ incident.decision.selected }}</p>
+            {% if incident.decision.rationale %}
+            <ul class="compact-list">
+              {% for item in incident.decision.rationale[:3] %}
+              <li>{{ item }}</li>
+              {% endfor %}
+            </ul>
+            {% endif %}
+          </div>
+          {% endif %}
+
+          <div class="incident-section">
+            <div class="section-label">AI Analyst</div>
+            {% if analyst.get("enabled") %}
+              {% if analyst.get("used") %}
+              <p class="section-copy">Used {{ analyst.get("framework", "ai") }} with {{ analyst.get("model", "unknown model") }} in {{ analyst.get("authority_mode", "advisory") }} mode.</p>
+              {% else %}
+              <p class="section-copy muted">Configured but not used. {{ analyst.get("error", "Deterministic policy handled the incident.") or "Deterministic policy handled the incident." }}</p>
+              {% endif %}
+            {% else %}
+            <p class="section-copy muted">AI analyst disabled for this incident.</p>
+            {% endif %}
+
+            {% if analyst.get("selected_tools") %}
+            <div class="tool-grid">
+              {% for tool in analyst.get("selected_tools", []) %}
+              <article class="tool-card">
+                <strong>{{ tool.get("title", tool.get("tool_name")) }}</strong>
+                <span class="tool-provider">{{ tool.get("provider") }}</span>
+                <span class="tool-name">{{ tool.get("tool_name") }}</span>
+                {% if tool.get("justifications") %}
+                <ul class="compact-list">
+                  {% for item in tool.get("justifications", [])[:2] %}
+                  <li>{{ item }}</li>
+                  {% endfor %}
+                </ul>
+                {% endif %}
+              </article>
+              {% endfor %}
+            </div>
+            {% elif analyst.get("tool_calls") %}
+            <div class="chip-row">
+              {% for tool_name in analyst.get("tool_calls", []) %}
+              <span class="chip chip-ghost">{{ tool_name }}</span>
+              {% endfor %}
+            </div>
+            {% endif %}
+          </div>
+
+          {% if incident.timeline %}
+          <div class="incident-section">
+            <div class="section-label">Recent Timeline</div>
+            <ol class="timeline-compact">
+              {% for item in incident.timeline[-3:]|reverse %}
+              <li><strong>{{ item.kind }}</strong> {{ item.summary }}</li>
+              {% endfor %}
+            </ol>
+          </div>
+          {% endif %}
+        </article>
         {% else %}
-        <tr><td colspan="7">No incidents yet.</td></tr>
+        <p>No incidents yet.</p>
         {% endfor %}
-      </table>
+      </div>
     </section>
 
     <section class="panel">

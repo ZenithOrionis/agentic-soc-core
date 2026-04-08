@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
+from uuid import uuid4
 
 
 SCENARIOS = {
@@ -42,6 +43,10 @@ def load_env() -> None:
 
 def now(offset_seconds: int = 0) -> str:
     return (datetime.now(UTC) + timedelta(seconds=offset_seconds)).isoformat()
+
+
+def new_demo_run_id(scenario: str) -> str:
+    return f"{scenario}-{uuid4().hex[:10]}"
 
 
 def post_json(url: str, payload: dict[str, Any] | None = None, api_key: str | None = None) -> dict[str, Any]:
@@ -220,15 +225,18 @@ def direct_payloads(scenario: str) -> list[tuple[str, dict[str, Any]]]:
 def run_scenario(args: argparse.Namespace) -> None:
     load_env()
     api_key = args.api_key or os.getenv("SOC_API_KEY", "")
+    demo_run_id = new_demo_run_id(args.scenario)
     if args.mode == "simulator":
         url = f"{args.simulator_url.rstrip('/')}/scenarios/{args.scenario}"
-        print(json.dumps(post_json(url, api_key=api_key), indent=2))
+        print(json.dumps(post_json(url, {"demo_run_id": demo_run_id}, api_key=api_key), indent=2))
         return
 
     normalizer = args.normalizer_url.rstrip("/")
     results: list[dict[str, Any]] = []
     for index, (path, payload) in enumerate(direct_payloads(args.scenario)):
         payload["timestamp"] = now(index)
+        payload["demo_run_id"] = demo_run_id
+        payload["demo_scenario"] = args.scenario
         print(f"[demo-attack-runner] sending benign {args.scenario} event {index + 1}")
         results.append(post_json(f"{normalizer}{path}", payload, api_key=api_key))
         if args.delay > 0:

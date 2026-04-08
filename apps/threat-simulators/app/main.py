@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 from datetime import UTC, datetime, timedelta
 from typing import Any
+from uuid import uuid4
 
 import httpx
 from fastapi import FastAPI, HTTPException
@@ -20,6 +21,12 @@ install_security_middleware(app, "threat-simulators")
 
 def ts(offset_seconds: int = 0) -> str:
     return (datetime.now(UTC) + timedelta(seconds=offset_seconds)).isoformat()
+
+
+def get_demo_run_id(payload: dict[str, Any] | None, scenario: str) -> str:
+    if payload and payload.get("demo_run_id"):
+        return str(payload["demo_run_id"])
+    return f"{scenario}-{uuid4().hex[:10]}"
 
 
 async def post(path: str, payload: dict[str, Any]) -> dict[str, Any]:
@@ -50,8 +57,9 @@ def scenarios() -> dict[str, list[str]]:
 
 
 @app.post("/scenarios/outbound-beacon")
-async def outbound_beacon() -> dict[str, Any]:
+async def outbound_beacon(payload: dict[str, Any] | None = None) -> dict[str, Any]:
     """Repeated callbacks to a controlled attacker-sim IP; no real C2 is performed."""
+    demo_run_id = get_demo_run_id(payload, "outbound-beacon")
     events = []
     for i in range(4):
         events.append(
@@ -67,6 +75,8 @@ async def outbound_beacon() -> dict[str, Any]:
                     "proto": "TCP",
                     "host": "workstation-1",
                     "container": "workstation-1",
+                    "demo_run_id": demo_run_id,
+                    "demo_scenario": "outbound-beacon",
                     "alert": {
                         "signature_id": 900001,
                         "signature": "DEMO C2-like repeated outbound beacon",
@@ -81,7 +91,8 @@ async def outbound_beacon() -> dict[str, Any]:
 
 
 @app.post("/scenarios/suspicious-script")
-async def suspicious_script() -> dict[str, Any]:
+async def suspicious_script(payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    demo_run_id = get_demo_run_id(payload, "suspicious-script")
     events = []
     commands = [
         "bash -c 'echo ZGVtby1vbmx5 | base64 -d | sh'",
@@ -99,6 +110,8 @@ async def suspicious_script() -> dict[str, Any]:
                         "level": 10,
                         "description": "DEMO suspicious encoded shell command pattern",
                     },
+                    "demo_run_id": demo_run_id,
+                    "demo_scenario": "suspicious-script",
                     "data": {
                         "username": "demo-user",
                         "process": "bash",
@@ -113,7 +126,8 @@ async def suspicious_script() -> dict[str, Any]:
 
 
 @app.post("/scenarios/bruteforce-success")
-async def bruteforce_success() -> dict[str, Any]:
+async def bruteforce_success(payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    demo_run_id = get_demo_run_id(payload, "bruteforce-success")
     events = []
     for i in range(5):
         events.append(
@@ -123,6 +137,8 @@ async def bruteforce_success() -> dict[str, Any]:
                     "timestamp": ts(i),
                     "agent": {"id": "003", "name": "server-1"},
                     "rule": {"id": 100300, "level": 8, "description": "DEMO repeated failed SSH login"},
+                    "demo_run_id": demo_run_id,
+                    "demo_scenario": "bruteforce-success",
                     "data": {
                         "username": "demo-admin",
                         "process": "sshd",
@@ -140,6 +156,8 @@ async def bruteforce_success() -> dict[str, Any]:
                 "timestamp": ts(6),
                 "agent": {"id": "003", "name": "server-1"},
                 "rule": {"id": 100301, "level": 12, "description": "DEMO suspicious login success after brute force"},
+                "demo_run_id": demo_run_id,
+                "demo_scenario": "bruteforce-success",
                 "data": {
                     "username": "demo-admin",
                     "process": "sshd",
@@ -154,7 +172,8 @@ async def bruteforce_success() -> dict[str, Any]:
 
 
 @app.post("/scenarios/exfil-burst")
-async def exfil_burst() -> dict[str, Any]:
+async def exfil_burst(payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    demo_run_id = get_demo_run_id(payload, "exfil-burst")
     event = await post(
         "/ingest/suricata",
         {
@@ -166,6 +185,8 @@ async def exfil_burst() -> dict[str, Any]:
             "proto": "TCP",
             "host": "workstation-1",
             "container": "workstation-1",
+            "demo_run_id": demo_run_id,
+            "demo_scenario": "exfil-burst",
             "bytes_toserver": 52428800,
             "alert": {
                 "signature_id": 900004,
@@ -180,13 +201,16 @@ async def exfil_burst() -> dict[str, Any]:
 
 
 @app.post("/scenarios/persistence-like")
-async def persistence_like() -> dict[str, Any]:
+async def persistence_like(payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    demo_run_id = get_demo_run_id(payload, "persistence-like")
     event = await post(
         "/ingest/wazuh",
         {
             "timestamp": ts(),
             "agent": {"id": "001", "name": "workstation-1"},
             "rule": {"id": 100400, "level": 7, "description": "DEMO persistence-like cron entry creation"},
+            "demo_run_id": demo_run_id,
+            "demo_scenario": "persistence-like",
             "data": {
                 "username": "demo-user",
                 "process": "crontab",
@@ -199,12 +223,13 @@ async def persistence_like() -> dict[str, Any]:
 
 
 @app.post("/scenarios/suspicious-download")
-async def suspicious_download() -> dict[str, Any]:
-    return await suspicious_script()
+async def suspicious_download(payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    return await suspicious_script(payload)
 
 
 @app.post("/scenarios/reverse-shell-like")
-async def reverse_shell_like() -> dict[str, Any]:
+async def reverse_shell_like(payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    demo_run_id = get_demo_run_id(payload, "reverse-shell-like")
     event = await post(
         "/ingest/suricata",
         {
@@ -216,6 +241,8 @@ async def reverse_shell_like() -> dict[str, Any]:
             "proto": "TCP",
             "host": "workstation-1",
             "container": "workstation-1",
+            "demo_run_id": demo_run_id,
+            "demo_scenario": "reverse-shell-like",
             "alert": {
                 "signature_id": 900001,
                 "signature": "DEMO reverse-shell-like callback to controlled listener",

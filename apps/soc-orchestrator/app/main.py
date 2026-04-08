@@ -47,6 +47,10 @@ def correlation_key(event: NormalizedEvent) -> str:
     tags = set(event.tags)
     src = next((o.value for o in event.observables if o.type == "ip" and o.role == "source"), "unknown-src")
     dst = next((o.value for o in event.observables if o.type == "ip" and o.role == "destination"), "unknown-dst")
+    demo_run_id = event.raw.get("demo_run_id")
+    if demo_run_id:
+        scenario = event.raw.get("demo_scenario") or next(iter(tags), event.rule_id)
+        return f"demo:{scenario}:{event.asset.id}:{demo_run_id}"
     if {"c2", "beacon"}.intersection(tags):
         return f"c2:{event.asset.id}:{dst}"
     if "suspicious-script" in tags:

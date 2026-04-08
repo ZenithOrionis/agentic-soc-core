@@ -26,47 +26,107 @@ $ErrorActionPreference = "Stop"
 
 $ScenarioMap = @{
     "outbound-beacon" = @{
-        Technique = "T1071.001"
-        Name = "Application Layer Protocol: Web Protocols"
+        Technique = @{
+            Default = "T1071.001"
+            Linux = "T1071.001"
+        }
+        Name = @{
+            Default = "Application Layer Protocol: Web Protocols"
+            Linux = "Application Layer Protocol: Web Protocols"
+        }
         SafeFallback = "Run-Telemetry-OutboundBeacon.ps1"
         Guidance = "Pick an atomic that produces benign HTTP/S callback telemetry in your lab."
     }
     "suspicious-script" = @{
-        Technique = "T1059.003"
-        Name = "Command and Scripting Interpreter: Windows Command Shell"
+        Technique = @{
+            Default = "T1059.003"
+            Linux = "T1059.004"
+        }
+        Name = @{
+            Default = "Command and Scripting Interpreter: Windows Command Shell"
+            Linux = "Command and Scripting Interpreter: Unix Shell"
+        }
         SafeFallback = "Run-Telemetry-SuspiciousScript.ps1"
         Guidance = "Pick a benign command-line atomic that does not download or execute untrusted payloads."
     }
     "bruteforce-success" = @{
-        Technique = "T1110"
-        Name = "Brute Force"
+        Technique = @{
+            Default = "T1110"
+            Linux = "T1110"
+        }
+        Name = @{
+            Default = "Brute Force"
+            Linux = "Brute Force"
+        }
         SafeFallback = "Run-Telemetry-BruteforceSuccess.ps1"
         Guidance = "Prefer telemetry emission unless you have a disposable auth target."
     }
     "exfil-burst" = @{
-        Technique = "T1041"
-        Name = "Exfiltration Over C2 Channel"
+        Technique = @{
+            Default = "T1041"
+            Linux = "T1041"
+        }
+        Name = @{
+            Default = "Exfiltration Over C2 Channel"
+            Linux = "Exfiltration Over C2 Channel"
+        }
         SafeFallback = "Run-ExfilBurst.ps1"
         Guidance = "Avoid real data transfer. Use a disposable lab target only."
     }
     "persistence-like" = @{
-        Technique = "T1053.005"
-        Name = "Scheduled Task/Job: Scheduled Task"
+        Technique = @{
+            Default = "T1053.005"
+            Linux = "T1053.003"
+        }
+        Name = @{
+            Default = "Scheduled Task/Job: Scheduled Task"
+            Linux = "Scheduled Task/Job: Cron"
+        }
         SafeFallback = "Run-PersistenceLike.ps1"
         Guidance = "Run cleanup after any scheduled-task atomic."
     }
     "suspicious-download" = @{
-        Technique = "T1105"
-        Name = "Ingress Tool Transfer"
+        Technique = @{
+            Default = "T1105"
+            Linux = "T1105"
+        }
+        Name = @{
+            Default = "Ingress Tool Transfer"
+            Linux = "Ingress Tool Transfer"
+        }
         SafeFallback = "Run-SuspiciousDownload.ps1"
         Guidance = "Do not download untrusted payloads. Use preview/check-prereqs first."
     }
     "reverse-shell-like" = @{
-        Technique = "T1105"
-        Name = "Ingress Tool Transfer / Callback-like Network Behavior"
+        Technique = @{
+            Default = "T1105"
+            Linux = "T1105"
+        }
+        Name = @{
+            Default = "Ingress Tool Transfer / Callback-like Network Behavior"
+            Linux = "Ingress Tool Transfer / Callback-like Network Behavior"
+        }
         SafeFallback = "Run-ReverseShellLike.ps1"
         Guidance = "Use telemetry mode for demos. Do not open real shells."
     }
+}
+
+function Resolve-ScenarioValue {
+    param(
+        [hashtable]$ScenarioDetails,
+        [string]$Field
+    )
+
+    $fieldValue = $ScenarioDetails[$Field]
+    if ($fieldValue -isnot [hashtable]) {
+        return $fieldValue
+    }
+
+    if ($IsLinux -and $fieldValue.ContainsKey("Linux")) {
+        return $fieldValue["Linux"]
+    }
+
+    return $fieldValue["Default"]
 }
 
 function Resolve-AtomicModule {
@@ -130,12 +190,13 @@ function Invoke-SafeFallbackTelemetry {
 }
 
 $scenarioInfo = $ScenarioMap[$Scenario]
-$technique = $scenarioInfo.Technique
+$technique = Resolve-ScenarioValue -ScenarioDetails $scenarioInfo -Field "Technique"
+$techniqueName = Resolve-ScenarioValue -ScenarioDetails $scenarioInfo -Field "Name"
 
 Write-Host ""
 Write-Host "Agentic SOC Atomic Red Team bridge"
 Write-Host "Scenario: $Scenario"
-Write-Host "Technique: $technique - $($scenarioInfo.Name)"
+Write-Host "Technique: $technique - $techniqueName"
 Write-Host "Mode: $Mode"
 Write-Host "Guidance: $($scenarioInfo.Guidance)"
 Write-Host ""

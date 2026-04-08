@@ -26,6 +26,11 @@ Preview Atomic Red Team tests:
 powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\atomic-red-team\Invoke-AgenticAtomic.ps1 -Scenario suspicious-script -Mode Preview
 ```
 
+On Linux/Kali, the bridge automatically switches some scenarios to Linux-native techniques:
+
+- `suspicious-script` -> `T1059.004` Unix Shell
+- `persistence-like` -> `T1053.003` Cron
+
 Check prerequisites for explicit test numbers:
 
 ```powershell

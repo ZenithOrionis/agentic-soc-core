@@ -1,0 +1,90 @@
+# Production-hardening overlay.
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.production.yml --env-file .env.production up -d --build
+#
+# This overlay keeps the default app architecture but changes runtime posture:
+# - production API-key auth is enabled
+# - containment actions require manual approval token
+# - Docker socket enforcement remains disabled
+# - containers drop Linux capabilities and set no-new-privileges
+# - service ports are bound to localhost only for an admin jumpbox / reverse proxy
+
+x-prod-common: &prod-common
+  env_file: .env.production
+  environment:
+    ENVIRONMENT: production
+    PYTHONDONTWRITEBYTECODE: "1"
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+  restart: unless-stopped
+
+services:
+  normalizer:
+    <<: *prod-common
+    ports: !override
+      - "127.0.0.1:8001:8000"
+
+  soc-orchestrator:
+    <<: *prod-common
+    ports: !override
+      - "127.0.0.1:8002:8000"
+
+  response-executor:
+    <<: *prod-common
+    environment:
+      ENVIRONMENT: production
+      PYTHONDONTWRITEBYTECODE: "1"
+      RESPONSE_MODE: ${RESPONSE_MODE:-dry-run}
+      DOCKER_CONTROL_ENABLED: "false"
+      REQUIRE_MANUAL_APPROVAL: "true"
+    ports: !override
+      - "127.0.0.1:8003:8000"
+
+  explainability-service:
+    <<: *prod-common
+    ports: !override
+      - "127.0.0.1:8004:8000"
+
+  demo-control-ui:
+    <<: *prod-common
+    depends_on: !override
+      normalizer:
+        condition: service_healthy
+    ports: !override
+      - "127.0.0.1:8080:8000"
+
+  integration-adapters:
+    <<: *prod-common
+    ports: !override
+      - "127.0.0.1:8010:8000"
+
+  threat-simulators:
+    profiles: ["demo-tools"]
+    <<: *prod-common
+    ports: !override
+      - "127.0.0.1:8005:8000"
+
+  workstation-1:
+    profiles: ["demo-tools"]
+
+  server-1:
+    profiles: ["demo-tools"]
+
+  demo-attack-runner:
+    profiles: ["demo-attacks"]
+    <<: *prod-common
+    environment:
+      ENVIRONMENT: production
+      PYTHONDONTWRITEBYTECODE: "1"
+      NORMALIZER_URL: http://normalizer:8000
+      THREAT_SIMULATOR_URL: http://threat-simulators:8000
+
+  ollama:
+    profiles: ["ai"]
+    ports: !override
+      - "127.0.0.1:11434:11434"
+
+  ollama-pull:
+    profiles: ["ai"]

@@ -1,0 +1,24 @@
+[
+  {
+    "title": "Historical demo C2-like beacon from workstation-2",
+    "severity": "high",
+    "confidence": 0.94,
+    "asset": "workstation-2",
+    "tags": ["c2", "beacon", "network"]
+  },
+  {
+    "title": "Historical suspicious script on workstation-1",
+    "severity": "high",
+    "confidence": 0.82,
+    "asset": "workstation-1",
+    "tags": ["suspicious-script", "execution"]
+  },
+  {
+    "title": "Historical credential abuse against server-1",
+    "severity": "critical",
+    "confidence": 0.96,
+    "asset": "server-1",
+    "tags": ["credential-access", "bruteforce", "anomalous-success"]
+  }
+]
+

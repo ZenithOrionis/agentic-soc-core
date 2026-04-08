@@ -1,0 +1,17 @@
+{
+  "index_patterns": ["agentic-soc-events-*"],
+  "template": {
+    "mappings": {
+      "properties": {
+        "timestamp": {"type": "date"},
+        "source": {"type": "keyword"},
+        "severity": {"type": "keyword"},
+        "confidence": {"type": "float"},
+        "asset.hostname": {"type": "keyword"},
+        "rule_id": {"type": "keyword"},
+        "tags": {"type": "keyword"}
+      }
+    }
+  }
+}
+

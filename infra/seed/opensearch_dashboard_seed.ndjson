@@ -1,0 +1,2 @@
+{"type":"index-pattern","id":"agentic-soc-events","attributes":{"title":"agentic-soc-events-*","timeFieldName":"timestamp"}}
+{"type":"visualization","id":"incident-severity-demo","attributes":{"title":"Incident severity demo metric","visState":"{\"title\":\"Incident severity demo metric\",\"type\":\"metric\"}"}}

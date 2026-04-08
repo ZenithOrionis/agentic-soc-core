@@ -1,0 +1,20 @@
+{
+  "timestamp": "2026-04-07T12:02:00.000000+00:00",
+  "agent": {
+    "id": "001",
+    "name": "workstation-1"
+  },
+  "rule": {
+    "id": 100200,
+    "level": 10,
+    "description": "DEMO suspicious encoded shell command pattern"
+  },
+  "data": {
+    "username": "demo-user",
+    "process": "bash",
+    "command": "bash -c 'echo ZGVtby1vbmx5 | base64 -d | sh'",
+    "container": "workstation-1",
+    "asset_ip": "172.24.0.10"
+  }
+}
+

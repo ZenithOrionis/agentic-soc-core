@@ -1,0 +1,19 @@
+{
+  "ips": {
+    "10.13.37.10": {
+      "verdict": "known-bad",
+      "reason": "Controlled attacker-sim endpoint used for deterministic C2-like demos."
+    },
+    "203.0.113.50": {
+      "verdict": "suspicious",
+      "reason": "RFC 5737 documentation IP used as a safe brute-force/exfil source in demos."
+    }
+  },
+  "domains": {
+    "attacker-sim.local": {
+      "verdict": "suspicious",
+      "reason": "Local-only demo adversary emulator domain."
+    }
+  }
+}
+

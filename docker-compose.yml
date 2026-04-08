@@ -1,0 +1,285 @@
+name: agentic-soc-core
+
+services:
+  normalizer:
+    build:
+      context: .
+      dockerfile: apps/normalizer/Dockerfile
+    env_file: .env.example
+    environment:
+      SOC_DB_PATH: /data/soc.db
+      ORCHESTRATOR_URL: http://soc-orchestrator:8000
+    volumes:
+      - soc-state:/data
+      - ./shared:/app/shared:ro
+      - ./infra:/app/infra:ro
+    ports:
+      - "8001:8000"
+    networks:
+      - soc-core
+      - monitored-segment
+    depends_on:
+      soc-orchestrator:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  soc-orchestrator:
+    build:
+      context: .
+      dockerfile: apps/soc-orchestrator/Dockerfile
+    env_file: .env.example
+    environment:
+      RESPONSE_EXECUTOR_URL: http://response-executor:8000
+      SOC_DB_PATH: /data/soc.db
+    volumes:
+      - soc-state:/data
+      - ./shared:/app/shared:ro
+      - ./infra:/app/infra:ro
+    ports:
+      - "8002:8000"
+    networks:
+      - soc-core
+    depends_on:
+      response-executor:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  response-executor:
+    build:
+      context: .
+      dockerfile: apps/response-executor/Dockerfile
+    env_file: .env.example
+    environment:
+      SOC_DB_PATH: /data/soc.db
+      INTEGRATION_ADAPTER_URL: http://integration-adapters:8000
+      EXPLAINABILITY_URL: http://explainability-service:8000
+    volumes:
+      - soc-state:/data
+      - ./shared:/app/shared:ro
+      - ./infra:/app/infra:ro
+      # Optional active Docker enforcement. Leave disabled unless you explicitly set DOCKER_CONTROL_ENABLED=true.
+      # - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "8003:8000"
+    networks:
+      - soc-core
+      - monitored-segment
+      - quarantine-segment
+    depends_on:
+      integration-adapters:
+        condition: service_healthy
+      explainability-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  explainability-service:
+    build:
+      context: .
+      dockerfile: apps/explainability-service/Dockerfile
+    env_file: .env.example
+    environment:
+      SOC_DB_PATH: /data/soc.db
+      REPORT_DIR: /data/reports
+    volumes:
+      - soc-state:/data
+      - soc-reports:/data/reports
+      - ./shared:/app/shared:ro
+    ports:
+      - "8004:8000"
+    networks:
+      - soc-core
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  demo-control-ui:
+    build:
+      context: .
+      dockerfile: apps/demo-control-ui/Dockerfile
+    env_file: .env.example
+    environment:
+      SOC_DB_PATH: /data/soc.db
+      NORMALIZER_URL: http://normalizer:8000
+      THREAT_SIMULATOR_URL: http://threat-simulators:8000
+      EXPLAINABILITY_URL: http://explainability-service:8000
+    volumes:
+      - soc-state:/data
+      - soc-reports:/data/reports:ro
+      - ./shared:/app/shared:ro
+    ports:
+      - "8080:8000"
+    networks:
+      - soc-core
+    depends_on:
+      normalizer:
+        condition: service_healthy
+      threat-simulators:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  threat-simulators:
+    build:
+      context: .
+      dockerfile: apps/threat-simulators/Dockerfile
+    env_file: .env.example
+    environment:
+      NORMALIZER_URL: http://normalizer:8000
+    ports:
+      - "8005:8000"
+    networks:
+      - soc-core
+      - monitored-segment
+    depends_on:
+      normalizer:
+        condition: service_healthy
+    labels:
+      soc.demo.scope: agentic-soc-core
+      soc.demo.asset: attacker-sim
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  integration-adapters:
+    build:
+      context: .
+      dockerfile: apps/integration-adapters/Dockerfile
+    env_file: .env.example
+    environment:
+      SOC_DB_PATH: /data/soc.db
+    volumes:
+      - soc-state:/data
+      - ./shared:/app/shared:ro
+    ports:
+      - "8010:8000"
+    networks:
+      - soc-core
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  workstation-1:
+    image: python:3.12-slim
+    command: ["python", "-c", "import time; print('workstation-1 monitored endpoint ready', flush=True); time.sleep(10**9)"]
+    networks:
+      - monitored-segment
+    labels:
+      soc.demo.scope: agentic-soc-core
+      soc.demo.asset: workstation-1
+
+  server-1:
+    image: python:3.12-slim
+    command: ["python", "-c", "import time; print('server-1 monitored endpoint ready', flush=True); time.sleep(10**9)"]
+    networks:
+      - monitored-segment
+    labels:
+      soc.demo.scope: agentic-soc-core
+      soc.demo.asset: server-1
+
+  suricata:
+    image: jasonish/suricata:7.0
+    profiles: ["full-sensors"]
+    command: ["-i", "eth0", "-k", "none", "-l", "/var/log/suricata"]
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    volumes:
+      - ./infra/suricata/local.rules:/etc/suricata/rules/local.rules:ro
+      - suricata-logs:/var/log/suricata
+    networks:
+      - monitored-segment
+
+  opensearch:
+    image: opensearchproject/opensearch:2.15.0
+    profiles: ["full-search"]
+    environment:
+      discovery.type: single-node
+      DISABLE_SECURITY_PLUGIN: "true"
+      OPENSEARCH_JAVA_OPTS: "-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - opensearch-data:/usr/share/opensearch/data
+    networks:
+      - soc-core
+
+  demo-attack-runner:
+    build:
+      context: .
+      dockerfile: tools/demo-attack-runner/Dockerfile
+    profiles: ["demo-attacks"]
+    env_file: .env.example
+    environment:
+      NORMALIZER_URL: http://normalizer:8000
+      THREAT_SIMULATOR_URL: http://threat-simulators:8000
+    networks:
+      - soc-core
+      - monitored-segment
+    depends_on:
+      normalizer:
+        condition: service_healthy
+
+  ollama:
+    image: ollama/ollama:0.5.7
+    profiles: ["ai"]
+    ports:
+      - "127.0.0.1:11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    networks:
+      - soc-core
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+
+  ollama-pull:
+    image: ollama/ollama:0.5.7
+    profiles: ["ai"]
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+    command: ["pull", "${OLLAMA_MODEL:-qwen2.5:3b-instruct}"]
+    networks:
+      - soc-core
+    depends_on:
+      ollama:
+        condition: service_healthy
+
+networks:
+  soc-core:
+    driver: bridge
+  monitored-segment:
+    driver: bridge
+    internal: false
+  quarantine-segment:
+    driver: bridge
+    internal: true
+
+volumes:
+  soc-state:
+  soc-reports:
+  suricata-logs:
+  opensearch-data:
+  ollama-data:

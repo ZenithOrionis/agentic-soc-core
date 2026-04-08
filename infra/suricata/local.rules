@@ -1,0 +1,5 @@
+alert http $HOME_NET any -> $EXTERNAL_NET any (msg:"DEMO C2-like repeated outbound beacon"; flow:to_server,established; content:"/callback/demo"; http_uri; classtype:trojan-activity; sid:900001; rev:1; metadata: attack_tactic Command_and_Control, attack_technique T1071;)
+alert http $HOME_NET any -> $EXTERNAL_NET any (msg:"DEMO suspicious curl or wget download"; flow:to_server,established; content:"payload.sh"; http_uri; classtype:trojan-activity; sid:900002; rev:1; metadata: attack_tactic Execution, attack_technique T1059;)
+alert tcp $HOME_NET any -> $EXTERNAL_NET 4444 (msg:"DEMO reverse-shell-like controlled callback"; flow:to_server; classtype:trojan-activity; sid:900003; rev:1; metadata: attack_tactic Command_and_Control, attack_technique T1095;)
+alert http $HOME_NET any -> $EXTERNAL_NET any (msg:"DEMO exfiltration-like burst transfer"; flow:to_server,established; content:"/upload-demo"; http_uri; classtype:policy-violation; sid:900004; rev:1; metadata: attack_tactic Exfiltration, attack_technique T1567;)
+

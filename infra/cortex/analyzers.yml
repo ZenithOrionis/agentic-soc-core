@@ -1,0 +1,10 @@
+analyzers:
+  LocalReputationAnalyzer:
+    data_types: ["ip", "domain", "url", "hash"]
+    mode: deterministic-local
+    description: Uses infra/seed/local_reputation.json in the demo; swap with Cortex analyzers in production.
+responders:
+  DemoBlockIpResponder:
+    action: block_ip
+    mode: response-executor
+

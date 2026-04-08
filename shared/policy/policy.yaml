@@ -1,0 +1,45 @@
+name: deterministic-demo-policy
+thresholds:
+  suppress_below: 0.60
+  enrich_min: 0.60
+  case_min: 0.60
+  auto_low_risk_min: 0.90
+  auto_medium_risk_min: 0.92
+auto_response_enabled: true
+allowlists:
+  assets:
+    - documentation-host
+  ips:
+    - 127.0.0.1
+blocklists:
+  ips:
+    - 10.13.37.10
+    - 203.0.113.50
+action_risk:
+  create_case: low
+  attach_observables: low
+  run_cortex_analyzer: low
+  run_shuffle_workflow: low
+  generate_report: low
+  collect_artifacts: low
+  block_ip: low
+  kill_process: low
+  isolate_container: medium
+  stop_container: medium
+irreversible_actions:
+  - delete_data
+  - wipe_host
+response_rules:
+  outbound_beacon:
+    match_tags: ["c2", "beacon"]
+    actions: ["block_ip", "isolate_container", "create_case", "attach_observables", "run_cortex_analyzer", "run_shuffle_workflow", "generate_report"]
+  suspicious_script:
+    match_tags: ["suspicious-script"]
+    actions: ["kill_process", "collect_artifacts", "create_case", "attach_observables", "run_cortex_analyzer", "generate_report"]
+  bruteforce_success:
+    match_tags: ["credential-access", "bruteforce", "anomalous-success"]
+    actions: ["block_ip", "create_case", "attach_observables", "run_shuffle_workflow", "generate_report"]
+  exfil_burst:
+    match_tags: ["exfiltration"]
+    actions: ["block_ip", "collect_artifacts", "create_case", "generate_report"]
+

@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>API Access - Agentic SOC Core</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <main>
+    <section class="panel">
+      <p class="eyebrow">Production API Access</p>
+      <h1>Protected API Links</h1>
+      <p>Production APIs require the <code>X-SOC-API-Key</code> header. Browser clicks to API ports may show <code>missing or invalid SOC API key</code>; that is expected protection.</p>
+      <p>Use PowerShell with the key from <code>.env.production</code>:</p>
+      <pre>$apiKey = (Select-String -Path .env.production -Pattern "^SOC_API_KEY=").ToString().Split("=")[1]
+Invoke-RestMethod -Uri "http://127.0.0.1:8002/incidents" -Headers @{ "X-SOC-API-Key" = $apiKey }</pre>
+      <p><a href="/">Back to dashboard</a></p>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,23 @@
+workflows:
+  outbound_c2_detection:
+    trigger: c2_or_beacon_tag
+    steps:
+      - deduplicate_by_asset_and_destination
+      - block_destination_ip
+      - create_thehive_case
+      - generate_pdf_report
+  suspicious_script_execution:
+    trigger: suspicious_script_tag
+    steps:
+      - collect_command_context
+      - kill_benign_simulated_process
+      - create_thehive_case
+      - generate_pdf_report
+  brute_force_credential_abuse:
+    trigger: bruteforce_and_anomalous_success_tags
+    steps:
+      - correlate_failures_and_success
+      - block_source_ip
+      - create_thehive_case
+      - generate_pdf_report
+

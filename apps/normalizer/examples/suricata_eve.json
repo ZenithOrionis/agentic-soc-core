@@ -1,0 +1,22 @@
+{
+  "timestamp": "2026-04-07T12:00:00.000000+00:00",
+  "event_type": "alert",
+  "src_ip": "172.24.0.10",
+  "src_port": 51514,
+  "dest_ip": "10.13.37.10",
+  "dest_port": 8443,
+  "proto": "TCP",
+  "host": "workstation-1",
+  "container": "workstation-1",
+  "alert": {
+    "signature_id": 900001,
+    "signature": "DEMO C2-like repeated outbound beacon",
+    "category": "Potential Corporate Privacy Violation",
+    "severity": 2
+  },
+  "http": {
+    "hostname": "attacker-sim.local",
+    "url": "/callback/demo"
+  }
+}
+

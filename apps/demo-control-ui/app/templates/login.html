@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Agentic SOC Core Login</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <main class="login-main">
+    <section class="panel login-panel">
+      <p class="eyebrow">Production access</p>
+      <h1>Agentic SOC Core</h1>
+      <p>Enter the SOC API key issued through your deployment secret store.</p>
+      {% if request.query_params.get("error") %}
+      <p class="error">Invalid API key.</p>
+      {% endif %}
+      <form method="post" action="/login">
+        <label for="api_key">SOC API Key</label>
+        <input id="api_key" name="api_key" type="password" autocomplete="current-password" required>
+        <button type="submit">Sign in</button>
+      </form>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Incident",
+  "type": "object",
+  "required": ["id", "created_at", "updated_at", "title", "status", "severity", "confidence", "asset", "correlation_key"],
+  "properties": {
+    "id": {"type": "string"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "updated_at": {"type": "string", "format": "date-time"},
+    "title": {"type": "string"},
+    "status": {"enum": ["new", "triaged", "contained", "remediated", "suppressed", "closed"]},
+    "severity": {"enum": ["informational", "low", "medium", "high", "critical"]},
+    "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+    "asset": {"type": "object"},
+    "event_ids": {"type": "array"},
+    "observables": {"type": "array"},
+    "attack": {"type": "array"},
+    "correlation_key": {"type": "string"},
+    "timeline": {"type": "array"},
+    "decision": {"type": ["object", "null"]},
+    "case_id": {"type": ["string", "null"]},
+    "report_pdf": {"type": ["string", "null"]},
+    "metadata": {"type": "object"}
+  }
+}
+

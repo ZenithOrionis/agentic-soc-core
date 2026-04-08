@@ -1,0 +1,35 @@
+<group name="agentic_soc_demo,">
+  <rule id="100200" level="10">
+    <decoded_as>json</decoded_as>
+    <field name="command">base64|curl.*bash|wget.*sh</field>
+    <description>DEMO suspicious encoded shell command pattern</description>
+    <mitre>
+      <id>T1059</id>
+    </mitre>
+  </rule>
+  <rule id="100300" level="8">
+    <decoded_as>json</decoded_as>
+    <field name="event">failed_login</field>
+    <description>DEMO repeated failed SSH login</description>
+    <mitre>
+      <id>T1110</id>
+    </mitre>
+  </rule>
+  <rule id="100301" level="12">
+    <decoded_as>json</decoded_as>
+    <field name="event">login_success_after_failures</field>
+    <description>DEMO suspicious login success after brute force</description>
+    <mitre>
+      <id>T1078</id>
+    </mitre>
+  </rule>
+  <rule id="100400" level="7">
+    <decoded_as>json</decoded_as>
+    <field name="command">crontab|startup|systemd</field>
+    <description>DEMO persistence-like startup modification</description>
+    <mitre>
+      <id>T1037</id>
+    </mitre>
+  </rule>
+</group>
+

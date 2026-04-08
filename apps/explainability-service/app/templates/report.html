@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{ incident.id }} - SOC Incident Report</title>
+  <style>{{ css }}</style>
+</head>
+<body>
+  <section class="title-page">
+    <p class="eyebrow">Agentic SOC Core</p>
+    <h1>Incident Report</h1>
+    <h2>{{ incident.title }}</h2>
+    <dl>
+      <dt>Incident ID</dt><dd>{{ incident.id }}</dd>
+      <dt>Status</dt><dd>{{ incident.status }}</dd>
+      <dt>Severity</dt><dd>{{ incident.severity }}</dd>
+      <dt>Confidence</dt><dd>{{ "%.0f"|format(incident.confidence * 100) }}%</dd>
+      <dt>Generated</dt><dd>{{ generated_at.isoformat() }}</dd>
+    </dl>
+  </section>
+
+  <section>
+    <h2>Executive Summary</h2>
+    <p>{{ incident.title }} was detected on asset <strong>{{ incident.asset.hostname }}</strong>. The deterministic policy engine assigned confidence <strong>{{ "%.2f"|format(incident.confidence) }}</strong> based on evidence, correlation, and local reputation context.</p>
+    <p>Current status is <strong>{{ incident.status }}</strong>. Automated actions were selected only from demo-safe, reversible response options.</p>
+  </section>
+
+  <section>
+    <h2>Incident Overview</h2>
+    <table>
+      <tr><th>Asset</th><td>{{ incident.asset.hostname }}</td></tr>
+      <tr><th>Container</th><td>{{ incident.asset.container or "n/a" }}</td></tr>
+      <tr><th>User</th><td>{{ incident.asset.user or "n/a" }}</td></tr>
+      <tr><th>Case ID</th><td>{{ incident.case_id or "not yet linked" }}</td></tr>
+      <tr><th>Correlation Key</th><td>{{ incident.correlation_key }}</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>Why It Was Suspicious</h2>
+    {% if incident.decision %}
+    <ul>
+      {% for item in incident.decision.rationale %}
+      <li>{{ item }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  </section>
+
+  {% if incident.metadata.get("ollama_analyst") %}
+  <section>
+    <h2>Ollama Analyst Decision</h2>
+    {% set analyst = incident.metadata.get("ollama_analyst") %}
+    <table>
+      <tr><th>Enabled</th><td>{{ analyst.get("enabled") }}</td></tr>
+      <tr><th>Used</th><td>{{ analyst.get("used") }}</td></tr>
+      <tr><th>Model</th><td>{{ analyst.get("model", "n/a") }}</td></tr>
+      <tr><th>Disposition</th><td>{{ analyst.get("disposition", "n/a") }}</td></tr>
+      <tr><th>Confidence Adjustment</th><td>{{ analyst.get("confidence_adjustment", "n/a") }}</td></tr>
+      <tr><th>Approved AI Actions</th><td>{{ analyst.get("approved_ai_actions", [])|join(", ") }}</td></tr>
+    </table>
+    {% if analyst.get("rationale") %}
+    <h3>Rationale</h3>
+    <ul>{% for item in analyst.get("rationale") %}<li>{{ item }}</li>{% endfor %}</ul>
+    {% endif %}
+    {% if analyst.get("uncertainty") %}
+    <h3>Uncertainty</h3>
+    <ul>{% for item in analyst.get("uncertainty") %}<li>{{ item }}</li>{% endfor %}</ul>
+    {% endif %}
+    {% if analyst.get("next_steps") %}
+    <h3>Next Steps</h3>
+    <ul>{% for item in analyst.get("next_steps") %}<li>{{ item }}</li>{% endfor %}</ul>
+    {% endif %}
+  </section>
+  {% endif %}
+
+  <section>
+    <h2>Timeline</h2>
+    <ol class="timeline">
+      {% for item in incident.timeline %}
+      <li><strong>{{ item.timestamp.isoformat() }}</strong> - {{ item.kind }} - {{ item.summary }}</li>
+      {% endfor %}
+    </ol>
+  </section>
+
+  <section>
+    <h2>Detections Triggered</h2>
+    {% for event in events %}
+    <article class="card">
+      <h3>{{ event.rule_name }}</h3>
+      <p><strong>Source:</strong> {{ event.source }} | <strong>Rule:</strong> {{ event.rule_id }} | <strong>Severity:</strong> {{ event.severity }}</p>
+      <p><strong>Tags:</strong> {{ event.tags|join(", ") }}</p>
+    </article>
+    {% endfor %}
+  </section>
+
+  <section>
+    <h2>Observables</h2>
+    <table>
+      <tr><th>Type</th><th>Value</th><th>Role</th><th>Reputation</th></tr>
+      {% for obs in incident.observables %}
+      <tr><td>{{ obs.type }}</td><td>{{ obs.value }}</td><td>{{ obs.role }}</td><td>{{ obs.reputation or "unknown" }}</td></tr>
+      {% endfor %}
+    </table>
+  </section>
+
+  <section>
+    <h2>MITRE ATT&CK Mapping</h2>
+    <table>
+      <tr><th>Tactic</th><th>Technique</th><th>ID</th></tr>
+      {% for attack in incident.attack %}
+      <tr><td>{{ attack.tactic }}</td><td>{{ attack.technique }}</td><td>{{ attack.technique_id }}</td></tr>
+      {% endfor %}
+    </table>
+  </section>
+
+  <section>
+    <h2>Automated Actions</h2>
+    {% for action in actions %}
+    <article class="card">
+      <h3>{{ action.action_type }} - {{ action.status }}</h3>
+      <p><strong>Target:</strong> {{ action.target }}</p>
+      <p><strong>Command:</strong> {{ action.command }}</p>
+      <p><strong>Result:</strong> {{ action.result }}</p>
+      <p><strong>Why selected:</strong> {{ action.rationale }}</p>
+      <p><strong>Rollback:</strong> {{ action.rollback }}</p>
+    </article>
+    {% else %}
+    <p>No automated actions have been recorded yet.</p>
+    {% endfor %}
+  </section>
+
+  <section>
+    <h2>Alternative Hypotheses</h2>
+    <ul>{% for item in alternative_hypotheses %}<li>{{ item }}</li>{% endfor %}</ul>
+  </section>
+
+  <section>
+    <h2>Unresolved Uncertainty</h2>
+    <ul>{% for item in unresolved_uncertainty %}<li>{{ item }}</li>{% endfor %}</ul>
+  </section>
+
+  <section>
+    <h2>Next Recommended Steps</h2>
+    <ul>
+      <li>Review the timeline and confirm the asset owner and business context.</li>
+      <li>Validate whether the observable should remain blocked after the demo.</li>
+      <li>For production use, replace lite adapters with TheHive, Cortex, Shuffle, Wazuh, and Suricata deployments.</li>
+    </ul>
+  </section>
+
+  <section class="appendix">
+    <h2>Detailed Appendix: Raw Evidence</h2>
+    {% for event in events %}
+    <pre>{{ event.raw | tojson(indent=2) }}</pre>
+    {% endfor %}
+  </section>
+
+  <footer>Agentic SOC Core report {{ report_version }} - generated {{ generated_at.isoformat() }}</footer>
+</body>
+</html>

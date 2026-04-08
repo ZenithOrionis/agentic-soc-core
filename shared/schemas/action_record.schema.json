@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ActionRecord",
+  "type": "object",
+  "required": ["id", "timestamp", "incident_id", "action_type", "target", "status", "mode", "command", "rollback", "rationale"],
+  "properties": {
+    "id": {"type": "string"},
+    "timestamp": {"type": "string", "format": "date-time"},
+    "incident_id": {"type": "string"},
+    "action_type": {"type": "string"},
+    "target": {"type": "string"},
+    "status": {"enum": ["planned", "executing", "succeeded", "failed", "skipped"]},
+    "mode": {"enum": ["dry-run", "active-demo", "docker-active"]},
+    "command": {"type": "string"},
+    "result": {"type": "string"},
+    "rollback": {"type": "string"},
+    "rationale": {"type": "string"},
+    "evidence": {"type": "object"}
+  }
+}
+

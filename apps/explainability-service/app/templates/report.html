@@ -55,10 +55,16 @@
       <tr><th>Enabled</th><td>{{ analyst.get("enabled") }}</td></tr>
       <tr><th>Used</th><td>{{ analyst.get("used") }}</td></tr>
       <tr><th>Model</th><td>{{ analyst.get("model", "n/a") }}</td></tr>
+      <tr><th>Authority Mode</th><td>{{ analyst.get("authority_mode", "n/a") }}</td></tr>
+      <tr><th>Authority Used</th><td>{{ analyst.get("authority_used", "n/a") }}</td></tr>
       <tr><th>Disposition</th><td>{{ analyst.get("disposition", "n/a") }}</td></tr>
       <tr><th>Confidence Adjustment</th><td>{{ analyst.get("confidence_adjustment", "n/a") }}</td></tr>
       <tr><th>Approved AI Actions</th><td>{{ analyst.get("approved_ai_actions", [])|join(", ") }}</td></tr>
     </table>
+    {% if analyst.get("error") %}
+    <h3>Why Ollama Was Not Used</h3>
+    <p>{{ analyst.get("error") }}</p>
+    {% endif %}
     {% if analyst.get("rationale") %}
     <h3>Rationale</h3>
     <ul>{% for item in analyst.get("rationale") %}<li>{{ item }}</li>{% endfor %}</ul>

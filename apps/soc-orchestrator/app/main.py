@@ -145,7 +145,12 @@ def merge_ai_decision(
     analyst: AnalystDecision | None,
 ) -> tuple[list[str], bool]:
     if analyst is None:
-        incident.metadata["ollama_analyst"] = {"enabled": ollama_analyst.enabled, "used": False}
+        incident.metadata["ollama_analyst"] = {
+            "enabled": ollama_analyst.enabled,
+            "used": False,
+            "model": ollama_analyst.model,
+            "authority_mode": OLLAMA_AUTHORITY_MODE,
+        }
         return actions, False
 
     original_confidence = incident.confidence
@@ -315,6 +320,8 @@ async def ingest_event(event: NormalizedEvent) -> Incident:
         incident.metadata["ollama_analyst"] = {
             "enabled": ollama_analyst.enabled,
             "used": False,
+            "model": ollama_analyst.model,
+            "authority_mode": OLLAMA_AUTHORITY_MODE,
             "error": str(exc),
         }
         incident.timeline.append(

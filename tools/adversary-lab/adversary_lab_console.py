@@ -7,6 +7,7 @@ import secrets
 import shutil
 import subprocess
 import sys
+import tempfile
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from http import HTTPStatus
@@ -328,13 +329,26 @@ def configured_tests(env: dict[str, str], scenario: str) -> list[int]:
 
 
 def state_dir() -> Path:
+    override = os.getenv("AEGISCORE_STATE_DIR", "").strip()
+    candidates: list[Path] = []
+    if override:
+        candidates.append(Path(override))
     if os.name == "nt":
-        base = Path(os.getenv("LOCALAPPDATA", Path.home() / "AppData" / "Local"))
-        target = base / "AegisCore" / "adversary-lab"
+        candidates.append(Path(os.getenv("LOCALAPPDATA", Path.home() / "AppData" / "Local")) / "AegisCore" / "adversary-lab")
     else:
-        target = Path.home() / ".local" / "state" / "aegiscore" / "adversary-lab"
-    target.mkdir(parents=True, exist_ok=True)
-    return target
+        candidates.append(Path.home() / ".local" / "state" / "aegiscore" / "adversary-lab")
+    candidates.append(Path.cwd() / ".aegiscore-state" / "adversary-lab")
+    candidates.append(Path(tempfile.gettempdir()) / "aegiscore-adversary-lab")
+
+    last_error: OSError | None = None
+    for target in candidates:
+        try:
+            target.mkdir(parents=True, exist_ok=True)
+            return target
+        except OSError as exc:
+            last_error = exc
+            continue
+    raise RuntimeError(f"Could not create an adversary lab state directory: {last_error}")
 
 
 def history_path() -> Path:

@@ -27,6 +27,7 @@ param(
         "attack-beacon",
         "attack-script",
         "attack-bruteforce",
+        "adversary-lab",
         "telemetry-beacon",
         "telemetry-script",
         "telemetry-bruteforce",
@@ -68,6 +69,7 @@ $PowerShellExe = if (Get-Command pwsh -ErrorAction SilentlyContinue) {
 }
 $AttackRunnerScript = Join-Path (Get-Location) "tools/demo-attack-runner/attack_runner.py"
 $AtomicDefaultScript = Join-Path (Get-Location) "tools/atomic-red-team/Invoke-AgenticAtomicDefault.ps1"
+$AdversaryLabScript = Join-Path (Get-Location) "tools/adversary-lab/ps1/Start-AegisCoreAdversaryLab.ps1"
 
 switch ($Command) {
     "up" {
@@ -129,6 +131,7 @@ switch ($Command) {
     "attack-beacon" { Invoke-Checked $PowerShellExe -NoProfile -ExecutionPolicy Bypass -File $AtomicDefaultScript -Scenario outbound-beacon }
     "attack-script" { Invoke-Checked $PowerShellExe -NoProfile -ExecutionPolicy Bypass -File $AtomicDefaultScript -Scenario suspicious-script }
     "attack-bruteforce" { Invoke-Checked $PowerShellExe -NoProfile -ExecutionPolicy Bypass -File $AtomicDefaultScript -Scenario bruteforce-success }
+    "adversary-lab" { Invoke-Checked $PowerShellExe -NoProfile -ExecutionPolicy Bypass -File $AdversaryLabScript }
     "telemetry-beacon" { Invoke-Checked python $AttackRunnerScript run outbound-beacon --mode direct }
     "telemetry-script" { Invoke-Checked python $AttackRunnerScript run suspicious-script --mode direct }
     "telemetry-bruteforce" { Invoke-Checked python $AttackRunnerScript run bruteforce-success --mode direct }
@@ -144,6 +147,6 @@ switch ($Command) {
         Write-Host "  .\soc.cmd demo-scenario-2"
         Write-Host "  .\soc.cmd demo-scenario-3"
         Write-Host ""
-        Write-Host "Commands: up, down, build, logs, reset, seed, test, e2e, demo-scenario-1, demo-scenario-2, demo-scenario-3, demo-exfil, generate-reports, screenshots, lint, format, ps, prod-up, prod-ai-up, prod-down, ai-up, ai-pull, attack-list, attack-beacon, attack-script, attack-bruteforce, telemetry-beacon, telemetry-script, telemetry-bruteforce, atomic-beacon, atomic-script, atomic-bruteforce"
+        Write-Host "Commands: up, down, build, logs, reset, seed, test, e2e, demo-scenario-1, demo-scenario-2, demo-scenario-3, demo-exfil, generate-reports, screenshots, lint, format, ps, prod-up, prod-ai-up, prod-down, ai-up, ai-pull, attack-list, attack-beacon, attack-script, attack-bruteforce, adversary-lab, telemetry-beacon, telemetry-script, telemetry-bruteforce, atomic-beacon, atomic-script, atomic-bruteforce"
     }
 }

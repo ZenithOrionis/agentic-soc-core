@@ -43,6 +43,13 @@ function Convert-TestNumbers {
     return @($Value.Split(",") | ForEach-Object { [int]$_.Trim() })
 }
 
+function Get-DefaultAtomicRedTeamPath {
+    if ($IsLinux) {
+        return "/opt/AtomicRedTeam"
+    }
+    return "C:\AtomicRedTeam"
+}
+
 Import-DotEnv ".env.atomic"
 
 $mode = $env:ATOMIC_DEFAULT_MODE
@@ -52,7 +59,7 @@ if ($mode -eq $null -or $mode -eq "") {
 
 $atomicPath = $env:ATOMIC_RED_TEAM_PATH
 if ($atomicPath -eq $null -or $atomicPath -eq "") {
-    $atomicPath = "C:\AtomicRedTeam"
+    $atomicPath = Get-DefaultAtomicRedTeamPath
 }
 
 $testEnvName = Get-ScenarioEnvName -ScenarioName $Scenario
@@ -85,4 +92,3 @@ if ($mode -eq "EmitTelemetry") {
 }
 
 & "$PSScriptRoot\Invoke-AgenticAtomic.ps1" -Scenario $Scenario -Mode Preview -TestNumbers $testNumbers -AtomicRedTeamPath $atomicPath
-

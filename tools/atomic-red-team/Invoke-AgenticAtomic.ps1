@@ -14,7 +14,7 @@ param(
     [ValidateSet("EmitTelemetry", "Preview", "CheckPrereqs", "Execute", "Cleanup")]
     [string]$Mode = "Preview",
 
-    [string]$AtomicRedTeamPath = "C:\AtomicRedTeam",
+    [string]$AtomicRedTeamPath = "",
     [string]$AtomicsPath = "",
     [string]$ModulePath = "",
 
@@ -129,6 +129,13 @@ function Resolve-ScenarioValue {
     return $fieldValue["Default"]
 }
 
+function Get-DefaultAtomicRedTeamPath {
+    if ($IsLinux) {
+        return "/opt/AtomicRedTeam"
+    }
+    return "C:\AtomicRedTeam"
+}
+
 function Resolve-AtomicModule {
     param(
         [string]$ProvidedModulePath,
@@ -140,10 +147,10 @@ function Resolve-AtomicModule {
     }
 
     $candidates = @(
-        (Join-Path $ProvidedAtomicRedTeamPath "invoke-atomicredteam\Invoke-AtomicRedTeam.psd1"),
-        (Join-Path $ProvidedAtomicRedTeamPath "Invoke-AtomicRedTeam\Invoke-AtomicRedTeam.psd1"),
-        (Join-Path $ProvidedAtomicRedTeamPath "invoke-atomicredteam\Invoke-AtomicRedTeam.psm1"),
-        (Join-Path $ProvidedAtomicRedTeamPath "Invoke-AtomicRedTeam\Invoke-AtomicRedTeam.psm1")
+        (Join-Path (Join-Path $ProvidedAtomicRedTeamPath "invoke-atomicredteam") "Invoke-AtomicRedTeam.psd1"),
+        (Join-Path (Join-Path $ProvidedAtomicRedTeamPath "Invoke-AtomicRedTeam") "Invoke-AtomicRedTeam.psd1"),
+        (Join-Path (Join-Path $ProvidedAtomicRedTeamPath "invoke-atomicredteam") "Invoke-AtomicRedTeam.psm1"),
+        (Join-Path (Join-Path $ProvidedAtomicRedTeamPath "Invoke-AtomicRedTeam") "Invoke-AtomicRedTeam.psm1")
     )
 
     foreach ($candidate in $candidates) {
@@ -193,6 +200,10 @@ $scenarioInfo = $ScenarioMap[$Scenario]
 $technique = Resolve-ScenarioValue -ScenarioDetails $scenarioInfo -Field "Technique"
 $techniqueName = Resolve-ScenarioValue -ScenarioDetails $scenarioInfo -Field "Name"
 
+if ($AtomicRedTeamPath -eq "") {
+    $AtomicRedTeamPath = Get-DefaultAtomicRedTeamPath
+}
+
 Write-Host ""
 Write-Host "Agentic SOC Atomic Red Team bridge"
 Write-Host "Scenario: $Scenario"
@@ -213,8 +224,14 @@ $atomics = Resolve-AtomicsPath -ProvidedAtomicsPath $AtomicsPath -ProvidedAtomic
 if ($module -eq "" -or $atomics -eq "") {
     Write-Host "Atomic Red Team / Invoke-AtomicRedTeam was not found locally."
     Write-Host "Expected examples:"
-    Write-Host "  Module: C:\AtomicRedTeam\invoke-atomicredteam\Invoke-AtomicRedTeam.psd1"
-    Write-Host "  Atomics: C:\AtomicRedTeam\atomics"
+    if ($IsLinux) {
+        Write-Host "  Module: /opt/AtomicRedTeam/invoke-atomicredteam/Invoke-AtomicRedTeam.psd1"
+        Write-Host "  Atomics: /opt/AtomicRedTeam/atomics"
+    }
+    else {
+        Write-Host "  Module: C:\AtomicRedTeam\invoke-atomicredteam\Invoke-AtomicRedTeam.psd1"
+        Write-Host "  Atomics: C:\AtomicRedTeam\atomics"
+    }
     Write-Host ""
     Write-Host "For a safe demo without installing Atomic Red Team, run:"
     Write-Host "  pwsh -NoProfile -ExecutionPolicy Bypass -File ./tools/atomic-red-team/Invoke-AgenticAtomic.ps1 -Scenario $Scenario -Mode EmitTelemetry"
